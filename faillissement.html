@@ -19,6 +19,10 @@
       <span class="subtitle">Samenvatting · HoGent · ACA1</span>
     </a>
     <div class="header-actions">
+      <button class="book-open-btn" data-page="1" type="button" title="Open handboek">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="book-open-btn-label">Handboek</span>
+      </button>
       <button class="menu-toggle" aria-label="Menu">☰</button>
       <button class="theme-toggle" aria-label="Thema">🌙 Donker</button>
     </div>
@@ -44,6 +48,7 @@
     </nav>
   </aside>
   <main>
+    
     <h1 id="faillissement-lesstof">Faillissement (lesstof)</h1>
 <p><em>De docent gaf aan dat het faillissement uit de les gekend moet zijn (Cluyse: "zie les"). De wettelijke basis vind je in Boek XX van het Wetboek Economisch Recht (WER), titel 8.</em></p>
 <h2 id="1-wat-is-een-faillissement">1. Wat is een faillissement?</h2>
@@ -174,6 +179,26 @@
   Docent: T. Cluyse — HoGent — Graduaat Accounting Administration.<br>
   Gemaakt om vrij te delen met medestudenten · <a href="index.html">Terug naar startpagina</a></p>
 </footer>
+
+<div class="pdf-modal" id="pdfModal" hidden aria-hidden="true" role="dialog" aria-labelledby="pdfModalTitle">
+  <div class="pdf-modal-backdrop" data-close></div>
+  <div class="pdf-modal-content">
+    <div class="pdf-modal-header">
+      <div class="pdf-modal-title" id="pdfModalTitle">
+        Praktisch Vennootschapsrecht 2025 — <span>pagina <strong id="pdfPageLabel">1</strong></span>
+      </div>
+      <div class="pdf-modal-actions">
+        <button class="pdf-page-btn" data-action="prev" title="Vorige pagina">←</button>
+        <input class="pdf-page-input" type="number" min="1" max="264" value="1" aria-label="Ga naar pagina">
+        <button class="pdf-page-btn" data-action="next" title="Volgende pagina">→</button>
+        <a class="pdf-open-tab" href="boek.pdf" target="_blank" rel="noopener" title="Open in nieuw tabblad">⤴ Nieuw tabblad</a>
+        <button class="pdf-modal-close" data-close title="Sluiten">✕</button>
+      </div>
+    </div>
+    <iframe class="pdf-modal-iframe" src="" title="Praktisch Vennootschapsrecht — boek"></iframe>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>

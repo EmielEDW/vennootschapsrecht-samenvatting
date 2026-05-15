@@ -19,6 +19,10 @@
       <span class="subtitle">Samenvatting · HoGent · ACA1</span>
     </a>
     <div class="header-actions">
+      <button class="book-open-btn" data-page="1" type="button" title="Open handboek">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        <span class="book-open-btn-label">Handboek</span>
+      </button>
       <button class="menu-toggle" aria-label="Menu">☰</button>
       <button class="theme-toggle" aria-label="Thema">🌙 Donker</button>
     </div>
@@ -44,6 +48,7 @@
     </nav>
   </aside>
   <main>
+    
     <h1 id="studietips-vennootschapsrecht">Studietips — Vennootschapsrecht</h1>
 <p><em>Een uitgewerkt studieplan om dit vak grondig en efficiënt aan te pakken. De examenvorm (Cluyse, HoGent) is een </em><em>schriftelijk examen</em><em> (70% van het cijfer) met </em><em>open vragen</em><em>, </em><em>gesloten vragen</em><em> en </em><em>meerkeuzevragen</em><em>, plus een verplichte </em><em>groepsopdracht</em><em> rond een opgezochte vennootschapsvorm (30%).</em></p>
 <h2 id="het-profiel-van-het-examen">Het profiel van het examen</h2>
@@ -86,7 +91,7 @@
 <p><strong>Mnemotechniek:</strong> <em>"Maatschap MIST alles, VOF/CommV HEBBEN maar BESCHERMEN niet, BV/NV/CV HEBBEN én BESCHERMEN."</em></p>
 </blockquote>
 <h3 id="stap-3-de-vergelijkende-tabel-uit-het-hoofd-week-2-3">Stap 3 — De vergelijkende tabel uit het hoofd (week 2-3)</h3>
-<p>De <strong>vergelijkende tabel</strong> (pp. 245-247 van het handboek) is volgens de docent <strong>dé basis van de leerstof</strong>. Studeer hem rij per rij. Test jezelf door met je hand één kolom af te dekken en de andere kolommen te reconstrueren.</p>
+<p>De <strong>vergelijkende tabel</strong> (<button class="book-ref" data-page="245" type="button" title="Open handboek op pagina 245"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>pp. 245-247</span></button> van het handboek) is volgens de docent <strong>dé basis van de leerstof</strong>. Studeer hem rij per rij. Test jezelf door met je hand één kolom af te dekken en de andere kolommen te reconstrueren.</p>
 <p>Maak voor elke vennootschapsvorm een <strong>fiche A4</strong>:</p>
 <pre><code>[Vennootschapsvorm]
 - Min. oprichters:
@@ -182,7 +187,7 @@
 <li>Slides + bordschema's van de lessen (Chamilo).</li>
 <li>Quizvragen "Vennootschap of eenmanszaak".</li>
 <li>Tekst over verlaagd tarief 2026.</li>
-<li>Vergelijkende tabel bijlage 1 (pp. 245-247).</li>
+<li>Vergelijkende tabel bijlage 1 (<button class="book-ref" data-page="245" type="button" title="Open handboek op pagina 245"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span>pp. 245-247</span></button>).</li>
 <li><strong>Deze samenvatting</strong>.</li>
 </ul>
 <p>Veel succes!</p>
@@ -193,6 +198,26 @@
   Docent: T. Cluyse — HoGent — Graduaat Accounting Administration.<br>
   Gemaakt om vrij te delen met medestudenten · <a href="index.html">Terug naar startpagina</a></p>
 </footer>
+
+<div class="pdf-modal" id="pdfModal" hidden aria-hidden="true" role="dialog" aria-labelledby="pdfModalTitle">
+  <div class="pdf-modal-backdrop" data-close></div>
+  <div class="pdf-modal-content">
+    <div class="pdf-modal-header">
+      <div class="pdf-modal-title" id="pdfModalTitle">
+        Praktisch Vennootschapsrecht 2025 — <span>pagina <strong id="pdfPageLabel">1</strong></span>
+      </div>
+      <div class="pdf-modal-actions">
+        <button class="pdf-page-btn" data-action="prev" title="Vorige pagina">←</button>
+        <input class="pdf-page-input" type="number" min="1" max="264" value="1" aria-label="Ga naar pagina">
+        <button class="pdf-page-btn" data-action="next" title="Volgende pagina">→</button>
+        <a class="pdf-open-tab" href="boek.pdf" target="_blank" rel="noopener" title="Open in nieuw tabblad">⤴ Nieuw tabblad</a>
+        <button class="pdf-modal-close" data-close title="Sluiten">✕</button>
+      </div>
+    </div>
+    <iframe class="pdf-modal-iframe" src="" title="Praktisch Vennootschapsrecht — boek"></iframe>
+  </div>
+</div>
+
 <script src="app.js"></script>
 </body>
 </html>
