@@ -174,7 +174,7 @@
       <li>Toegang voor altijd · betaal éénmalig</li>
     </ul>
     <div class="unlock-actions">
-      <a class="unlock-buy" id="unlockBuyBtn" href="STRIPE_PAYMENT_LINK_HERE" target="_blank" rel="noopener">
+      <a class="unlock-buy" id="unlockBuyBtn" href="https://buy.stripe.com/9B69AScpb6pM6vWbV4d3i00" target="_blank" rel="noopener">
         <span class="price">€5</span>
         <span class="label">Koop nu via Stripe →</span>
       </a>

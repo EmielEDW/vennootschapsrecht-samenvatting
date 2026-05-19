@@ -254,3 +254,153 @@ Of via terminal:
 curl -H "Authorization: Bearer $KV_REST_API_TOKEN" \
   "$KV_REST_API_URL/keys/code:*"
 ```
+
+---
+
+# 📧 BONUS — Automatische email met code (Stripe webhook + Resend)
+
+Nu kun je verkopen mét **volledig automatische codelevering**. Klant betaalt → binnen 30 seconden krijgt hij/zij een mail met een verse code.
+
+**Effort:** ~15 min eenmalig.
+**Kost:** gratis (Resend free tier = 100 mails/dag, 3.000/maand).
+
+## Stap A — Resend account aanmaken
+
+1. Ga naar **https://resend.com** → Sign up (free).
+2. Verifieer je email.
+3. Links → **API Keys** → **+ Create API Key** → naam: `vnr-examen-pack`, full access → Create.
+4. Kopieer de key (begint met `re_...`). Je ziet 'm maar één keer!
+
+> Voor productie: optioneel **domain verifiëren** zodat mails komen van bv. `noreply@jouwdomein.be`. Voor nu is `onboarding@resend.dev` prima.
+
+## Stap B — Env vars toevoegen op Vercel
+
+Settings → Environment Variables → Add:
+
+| Naam | Waarde |
+|---|---|
+| `RESEND_API_KEY` | de `re_...` key uit stap A |
+| `FROM_EMAIL` | `Examen-pack <onboarding@resend.dev>` (of jouw eigen domein) |
+| `REPLY_TO_EMAIL` | `emieldewaele@gmail.com` (replies komen daar) |
+| `SITE_URL` | `https://vennootschapsrecht-samenvatting.vercel.app` |
+| `STRIPE_WEBHOOK_SECRET` | (volgt in stap D) |
+
+## Stap C — Codes seeden in Upstash (1x)
+
+Run dit lokaal vanuit de project-folder:
+
+```bash
+cd "/Users/emiel/Downloads/venb pdf"
+
+# Haal de Upstash credentials uit Vercel:
+# Vercel → Storage → vnr-pack-kv → tab ".env.local"
+# Kopieer KV_REST_API_URL en KV_REST_API_TOKEN
+export KV_REST_API_URL='https://...upstash.io'
+export KV_REST_API_TOKEN='AY...'
+
+python3 seed-codes.py
+```
+
+Output:
+```
+📋 codes-private.txt: 200 unused, 0 used (skipped)
+  · Batch 1: pushed 50 codes (pool size: 50)
+  · Batch 2: pushed 50 codes (pool size: 100)
+  · Batch 3: pushed 50 codes (pool size: 150)
+  · Batch 4: pushed 50 codes (pool size: 200)
+✅ Done. Pool 'unused-codes' bevat nu 200 codes.
+```
+
+Codes staan nu klaar voor automatische distributie.
+
+## Stap D — Stripe webhook configureren
+
+1. Ga naar **Stripe Dashboard → Developers → Webhooks**.
+2. Klik **+ Add endpoint**.
+3. **Endpoint URL:** `https://vennootschapsrecht-samenvatting.vercel.app/api/stripe-webhook`
+4. **Events to send:** zoek en vink **enkel** aan: `checkout.session.completed`
+5. Klik **Add endpoint**.
+6. Op de detail-pagina van de webhook: **Reveal** de "Signing secret" (begint met `whsec_...`).
+7. Plak deze als `STRIPE_WEBHOOK_SECRET` env var op Vercel (zie stap B).
+
+## Stap E — Redeploy en test
+
+1. Vercel → Deployments → laatste deploy → **⋯** → **Redeploy** (env vars moeten ingeladen worden).
+2. Test in Stripe → Developers → Webhooks → klik je endpoint → tab **Send test event** → kies `checkout.session.completed` → **Send test webhook**.
+3. Stripe toont response status. **200 OK** = ok.
+4. Check Resend → Logs → je ziet de test-mail (gericht aan een dummy adres).
+
+> **Test met echte payment-flow:** je kan in Stripe ook in **Test mode** een echte testpayment doen via test-kaart `4242 4242 4242 4242`. Dan krijg je een echte test-email met een echte code.
+
+## Stap F — Optioneel: verifieer dat alles werkt
+
+**Vercel → Functions tab** toont alle requests naar `/api/stripe-webhook`. Klik op één om de logs te zien. Goede log:
+
+```
+✓ Sent code 22D9DXY5 to klant@example.com
+```
+
+Slechte logs (en wat ze betekenen):
+- `Invalid Stripe signature` → STRIPE_WEBHOOK_SECRET klopt niet
+- `RESEND_API_KEY not set` → mist env var
+- `Code pool is EMPTY!` → run `seed-codes.py` opnieuw
+- `email failed` → check Resend dashboard, code zit terug in pool
+
+## Fallback flow — wat als iets misgaat?
+
+Bij elke fout krijg JIJ (op `REPLY_TO_EMAIL`) een waarschuwingsmail met de customer-info en eventueel de code, zodat je manueel kan helpen. De code wordt teruggeplaatst in de pool zodat 'm niet verloren gaat.
+
+Idempotency check: hetzelfde Stripe-event 2x ontvangen geeft NIET 2 codes. We slaan `processed:{session_id}` op met TTL 90 dagen.
+
+## Hoe weet ik dat alles werkt?
+
+Eerste echte verkoop:
+1. Vrienden bv. testen met €5 echte betaling
+2. Binnen 30s krijgt hij/zij de mail met code + 1-klik unlock-link
+3. Jij krijgt ook een Stripe-notificatie ("€5 received")
+4. In Upstash KV browser zie je: 
+   - `unused-codes` (LIST): 199 codes nu (1 minder)
+   - `sold:CODE` (string): met email + timestamp
+   - `processed:cs_xxx` (string): idempotency marker
+
+## Codes bijvullen (later)
+
+Wanneer pool < 20 codes is, regenereer:
+
+```bash
+cd "/Users/emiel/Downloads/venb pdf"
+python3 -c "
+import secrets, hashlib, json
+from pathlib import Path
+
+ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+existing = set()
+hashes = json.load(open('site/valid-codes.json'))['hashes']
+existing_hashes = set(hashes)
+SALT = 'vnr-examen-pack-2026-v1'
+
+# Generate 100 fresh codes
+new = []
+while len(new) < 100:
+    c = ''.join(secrets.choice(ALPHABET) for _ in range(8))
+    h = hashlib.sha256((SALT + c).encode()).hexdigest()
+    if h in existing_hashes: continue
+    new.append(c)
+    existing_hashes.add(h)
+
+# Append hashes to valid-codes.json
+data = json.load(open('site/valid-codes.json'))
+data['hashes'].extend(hashlib.sha256((SALT + c).encode()).hexdigest() for c in new)
+json.dump(data, open('site/valid-codes.json', 'w'), indent=2)
+
+# Append plaintext to private file
+with open('codes-private.txt', 'a') as f:
+    f.write('\n# === Batch 2 ===\n')
+    for c in new: f.write(c + '\n')
+
+print(f'Generated {len(new)} new codes. Total: {len(data[\"hashes\"])}')
+"
+# Then push to Upstash
+python3 seed-codes.py  # zegt 'pool al groot, toevoegen?' → kies 'a'
+git add . && git commit -m "Add 100 more codes" && git push
+```
