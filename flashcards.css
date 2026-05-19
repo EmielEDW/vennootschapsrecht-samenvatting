@@ -88,6 +88,17 @@
   border-color: var(--accent);
   color: white;
 }
+.fc-chip.locked {
+  opacity: 0.55;
+  color: var(--text-soft);
+  border-style: dashed;
+}
+.fc-chip.locked:hover {
+  opacity: 1;
+  border-style: solid;
+  border-color: #d4a649;
+  color: #b8852f;
+}
 .fc-chip-count {
   font-size: 0.74rem;
   opacity: 0.7;

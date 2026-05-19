@@ -45,6 +45,8 @@
   .quiz-cat-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .quiz-cat-chip { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.7rem; border-radius: 16px; font-size: 0.83rem; cursor: pointer; font-family: inherit; }
   .quiz-cat-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .quiz-cat-chip.locked { opacity: 0.55; color: var(--text-soft); border-style: dashed; }
+  .quiz-cat-chip.locked:hover { opacity: 1; border-style: solid; border-color: #d4a649; color: #b8852f; }
   .quiz-locked { background: linear-gradient(180deg, var(--bg) 0%, var(--accent-soft) 100%); border: 2px dashed var(--accent); border-radius: 12px; padding: 2.5rem 2rem; text-align: center; margin: 1.5rem 0; }
   .quiz-locked-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
   .quiz-locked h2 { font-family: 'Lora', serif; font-size: 1.4rem; margin: 0 0 0.5rem; color: var(--text); }
@@ -90,7 +92,7 @@
   <main>
     <header class="quiz-header">
       <h1>Interactieve Quiz</h1>
-      <p class="quiz-lead">Test je examenkennis. Selecteer een onderwerp of beantwoord alle vragen. Je krijgt directe feedback per vraag. <strong>Gratis: 10 vragen per sessie · Pack: alle 50+ vragen.</strong></p>
+      <p class="quiz-lead">Test je examenkennis. Directe feedback en uitleg per vraag. <strong>Gratis: 3 onderwerpen die voor jou geselecteerd zijn · Pack: alle 14 onderwerpen.</strong></p>
     </header>
 
     <div class="quiz-cat-filter">
@@ -132,8 +134,14 @@
 <script src="app.js"></script>
 <script>
 (function() {
-  const FREE_LIMIT = 10;
+  // Gating: free users get 3 random categories (chosen once, stored in localStorage).
+  // Other categories are visible but locked; clicking opens the unlock modal.
+  const NUM_FREE_CATEGORIES = 3;
+  const FREE_CATS_KEY = 'vnr-quiz-free-cats-v1';
+
   let data = null;
+  let allCats = []; // all unique category names
+  let freeCats = []; // for current user
   let pool = [];
   let pos = 0;
   let score = 0;
@@ -141,27 +149,68 @@
   let activeCat = 'all';
 
   function unlocked() { return window.Auth && window.Auth.isUnlocked(); }
+  function isCategoryFree(catId) {
+    if (unlocked()) return true;
+    if (catId === 'all') return true;
+    return freeCats.includes(catId);
+  }
   const $ = id => document.getElementById(id);
   function shuffle(arr) { const a = arr.slice(); for (let i = a.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
+  function pickFreeCategories() {
+    // If user has previously been given a set, reuse it (stability across visits)
+    try {
+      const saved = JSON.parse(localStorage.getItem(FREE_CATS_KEY) || 'null');
+      if (Array.isArray(saved) && saved.length === NUM_FREE_CATEGORIES &&
+          saved.every(c => allCats.includes(c))) {
+        return saved;
+      }
+    } catch (e) {}
+    // Pick fresh
+    const shuffled = shuffle(allCats);
+    const chosen = shuffled.slice(0, Math.min(NUM_FREE_CATEGORIES, allCats.length));
+    try { localStorage.setItem(FREE_CATS_KEY, JSON.stringify(chosen)); } catch (e) {}
+    return chosen;
+  }
+
   function renderCatChips() {
-    const cats = ['all', ...new Set(data.questions.map(q => q.cat))];
-    const labels = { 'all': 'Alle onderwerpen' };
     const wrap = $('quizCatChips');
     wrap.innerHTML = '';
-    cats.forEach(id => {
-      const count = id === 'all' ? data.questions.length : data.questions.filter(q => q.cat === id).length;
+    const allOption = { id: 'all', label: unlocked() ? 'Alle onderwerpen' : 'Mijn gratis selectie' };
+    const items = [allOption, ...allCats.map(c => ({ id: c, label: c }))];
+    for (const cat of items) {
+      const isFree = isCategoryFree(cat.id);
+      const count = cat.id === 'all'
+        ? (unlocked() ? data.questions.length : data.questions.filter(q => freeCats.includes(q.cat)).length)
+        : data.questions.filter(q => q.cat === cat.id).length;
       const btn = document.createElement('button');
-      btn.className = 'quiz-cat-chip' + (activeCat === id ? ' active' : '');
-      btn.innerHTML = `${labels[id] || id} <span style="opacity:.6">(${count})</span>`;
-      btn.addEventListener('click', () => { activeCat = id; startQuiz(); });
+      btn.className = 'quiz-cat-chip'
+        + (activeCat === cat.id ? ' active' : '')
+        + (isFree ? '' : ' locked');
+      const icon = isFree ? '' : '<span style="margin-right:.3em">🔒</span>';
+      btn.innerHTML = `${icon}${cat.label} <span style="opacity:.6">(${count})</span>`;
+      btn.addEventListener('click', () => {
+        if (!isFree) {
+          if (window.Auth) window.Auth.openUnlockModal();
+          return;
+        }
+        activeCat = cat.id;
+        startQuiz();
+      });
       wrap.appendChild(btn);
-    });
+    }
   }
 
   function startQuiz() {
-    pool = activeCat === 'all' ? data.questions.slice() : data.questions.filter(q => q.cat === activeCat);
-    pool = shuffle(pool);
+    let questions;
+    if (activeCat === 'all') {
+      questions = unlocked()
+        ? data.questions.slice()
+        : data.questions.filter(q => freeCats.includes(q.cat));
+    } else {
+      questions = data.questions.filter(q => q.cat === activeCat);
+    }
+    pool = shuffle(questions);
     pos = 0;
     score = 0;
     answered = false;
@@ -172,12 +221,11 @@
 
   function renderQuestion() {
     answered = false;
-    const limit = unlocked() ? pool.length : Math.min(FREE_LIMIT, pool.length);
-    if (pos >= limit) { renderScore(); return; }
+    if (pos >= pool.length) { renderScore(); return; }
     const q = pool[pos];
-    $('quizPos').textContent = `Vraag ${pos+1} / ${limit}`;
+    $('quizPos').textContent = `Vraag ${pos+1} / ${pool.length}`;
     $('quizScore').textContent = `${score} ✓`;
-    $('quizFill').style.width = ((pos / limit) * 100) + '%';
+    $('quizFill').style.width = ((pos / pool.length) * 100) + '%';
 
     const optsHtml = q.options.map((opt, i) => `
       <button class="quiz-option" data-i="${i}">
@@ -220,7 +268,7 @@
   }
 
   function renderScore() {
-    const total = unlocked() ? pool.length : Math.min(FREE_LIMIT, pool.length);
+    const total = pool.length;
     const pct = total > 0 ? Math.round((score / total) * 100) : 0;
     let msg;
     if (pct >= 90) msg = '🏆 Uitstekend! Klaar voor het examen.';
@@ -229,12 +277,13 @@
     else msg = '💪 Tijd om de samenvatting er nog eens bij te pakken.';
 
     let lockBanner = '';
-    if (!unlocked() && data.questions.length > FREE_LIMIT) {
+    if (!unlocked()) {
+      const lockedCount = data.questions.length - data.questions.filter(q => freeCats.includes(q.cat)).length;
       lockBanner = `
         <div class="quiz-locked" style="margin-top:1.5rem">
           <div class="quiz-locked-icon">💎</div>
-          <h2>${data.questions.length - FREE_LIMIT}+ extra vragen in het Examen-pack</h2>
-          <p>Je hebt de ${FREE_LIMIT} gratis vragen doorlopen. Voor de volledige quizbank (alle ${data.questions.length} vragen, filter per onderwerp), ontgrendel het Examen-pack.</p>
+          <h2>${lockedCount} extra vragen in het Examen-pack</h2>
+          <p>Je gratis selectie dekt ${NUM_FREE_CATEGORIES} onderwerpen. Voor alle ${allCats.length} onderwerpen + de hele quizbank van ${data.questions.length} vragen, ontgrendel het Examen-pack.</p>
           <button class="paywall-btn" data-open-unlock>💎 Examen-pack ontgrendelen — €5</button>
         </div>`;
     }
@@ -258,7 +307,17 @@
       $('quizContent').innerHTML = '<p>Kon vragen niet laden.</p>';
       return;
     }
+    allCats = [...new Set(data.questions.map(q => q.cat))];
+    freeCats = unlocked() ? allCats.slice() : pickFreeCategories();
     startQuiz();
+
+    if (window.Auth && window.Auth.onChange) {
+      window.Auth.onChange(() => {
+        freeCats = unlocked() ? allCats.slice() : pickFreeCategories();
+        activeCat = 'all';
+        startQuiz();
+      });
+    }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();

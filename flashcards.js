@@ -1,20 +1,31 @@
 // Flashcards: load JSON, filter, shuffle, flip, track progress (localStorage).
+//
+// Gating model:
+// - Free users get full access to the FREE_CATEGORIES below.
+// - Other categories show a paywall card; their chips have a 🔒 icon and
+//   clicking opens the unlock modal.
+// - "Alle hoofdstukken" filter = all unlocked categories combined.
+// - Unlocked users see everything as normal.
 
 (function() {
   const STORAGE_KEY = 'vnr-flashcards-v1';
   const FILTER_KEY = 'vnr-flashcards-filter';
   const STUDY_KEY = 'vnr-flashcards-study';
-  const FREE_LIMIT = 40; // Cards before paywall kicks in
+  const FREE_CATEGORIES = ['inleiding', 'deel1-h1', 'deel1-h2', 'deel1-h3'];
 
   function unlocked() { return window.Auth && window.Auth.isUnlocked(); }
+  function isCategoryFree(catId) {
+    if (unlocked()) return true;
+    if (catId === 'all') return true; // "all" filter is allowed (will be restricted to free cats)
+    return FREE_CATEGORIES.includes(catId);
+  }
 
   /** @type {{categories: Array, cards: Array}} */
   let data = null;
-  /** Active deck of card-indices (into data.cards) */
   let deck = [];
   let pos = 0;
   let activeCategory = 'all';
-  let progress = {}; // { [cardIndex]: "known" | "unknown" }
+  let progress = {};
   let studyMode = false;
 
   // ---- Persistence ----
@@ -28,29 +39,25 @@
   function loadFilter() {
     activeCategory = localStorage.getItem(FILTER_KEY) || 'all';
     studyMode = localStorage.getItem(STUDY_KEY) === '1';
+    // If saved filter is now locked (e.g. user upgraded then downgraded), fall back
+    if (!isCategoryFree(activeCategory)) activeCategory = 'all';
   }
   function saveFilter() {
     localStorage.setItem(FILTER_KEY, activeCategory);
     localStorage.setItem(STUDY_KEY, studyMode ? '1' : '0');
   }
 
-  // ---- Minimal markdown → HTML for card answers ----
+  // ---- Markdown → HTML ----
   function escapeHtml(s) {
-    return s
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
   function mdToHtml(text) {
     let s = escapeHtml(text);
-    // bold
     s = s.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
-    // italic (single * not part of **)
     s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
-    // numbered list lines like "1. xxx"
     const lines = s.split(/\n+/);
     const out = [];
-    let listType = null; // 'ol' | 'ul' | null
+    let listType = null;
     for (const line of lines) {
       const olMatch = /^\s*\d+\.\s+(.*)/.exec(line);
       const ulMatch = /^\s*[-•]\s+(.*)/.exec(line);
@@ -72,12 +79,24 @@
   // ---- Deck construction ----
   function rebuildDeck() {
     const allIndices = data.cards.map((_, i) => i);
-    let filtered = activeCategory === 'all'
-      ? allIndices
-      : allIndices.filter(i => data.cards[i].cat === activeCategory);
-    if (studyMode) {
-      filtered = filtered.filter(i => progress[i] !== 'known');
+    let filtered;
+    if (activeCategory === 'all') {
+      // For free users, 'all' = only free categories combined
+      if (!unlocked()) {
+        filtered = allIndices.filter(i => FREE_CATEGORIES.includes(data.cards[i].cat));
+      } else {
+        filtered = allIndices;
+      }
+    } else {
+      // Specific category — if locked for free user, render empty deck
+      if (!isCategoryFree(activeCategory)) {
+        deck = [];
+        pos = 0;
+        return;
+      }
+      filtered = allIndices.filter(i => data.cards[i].cat === activeCategory);
     }
+    if (studyMode) filtered = filtered.filter(i => progress[i] !== 'known');
     deck = filtered;
     pos = 0;
   }
@@ -96,6 +115,9 @@
 
   function updateStats() {
     const total = data.cards.length;
+    const freeTotal = unlocked()
+      ? total
+      : data.cards.filter(c => FREE_CATEGORIES.includes(c.cat)).length;
     let known = 0, unknown = 0, unseen = 0;
     for (let i = 0; i < total; i++) {
       const s = progress[i];
@@ -106,25 +128,44 @@
     $('fcStatKnown').textContent = known;
     $('fcStatUnknown').textContent = unknown;
     $('fcStatUnseen').textContent = unseen;
-    $('fcStatProgress').textContent = total > 0 ? Math.round(known / total * 100) + '%' : '0%';
-    $('fcTotalCount').textContent = total;
+    const denom = unlocked() ? total : freeTotal;
+    $('fcStatProgress').textContent = denom > 0 ? Math.round(known / denom * 100) + '%' : '0%';
+    $('fcTotalCount').textContent = unlocked()
+      ? total
+      : `${freeTotal} gratis (van ${total})`;
   }
 
   function renderFilters() {
     const total = data.cards.length;
-    const counts = { all: total };
+    const counts = {};
     for (const cat of data.categories) counts[cat.id] = 0;
     for (const c of data.cards) counts[c.cat] = (counts[c.cat] || 0) + 1;
+    // 'all' count for free users = sum of free categories
+    counts.all = unlocked()
+      ? total
+      : data.cards.filter(c => FREE_CATEGORIES.includes(c.cat)).length;
 
     const wrap = $('fcFilterChips');
     wrap.innerHTML = '';
-    const all = [{ id: 'all', label: 'Alle hoofdstukken' }, ...data.categories];
-    for (const cat of all) {
+    const allOption = unlocked()
+      ? { id: 'all', label: 'Alle hoofdstukken' }
+      : { id: 'all', label: 'Alle gratis hoofdstukken' };
+    const items = [allOption, ...data.categories];
+    for (const cat of items) {
+      const isFree = isCategoryFree(cat.id);
       const btn = document.createElement('button');
-      btn.className = 'fc-chip' + (activeCategory === cat.id ? ' active' : '');
+      btn.className = 'fc-chip'
+        + (activeCategory === cat.id ? ' active' : '')
+        + (isFree ? '' : ' locked');
       btn.dataset.cat = cat.id;
-      btn.innerHTML = `${cat.label} <span class="fc-chip-count">${counts[cat.id] || 0}</span>`;
+      const lockIcon = isFree ? '' : '<span style="margin-right:.3em">🔒</span>';
+      btn.innerHTML = `${lockIcon}${cat.label} <span class="fc-chip-count">${counts[cat.id] || 0}</span>`;
       btn.addEventListener('click', () => {
+        if (!isFree) {
+          // Locked category — open unlock modal, don't switch
+          if (window.Auth) window.Auth.openUnlockModal();
+          return;
+        }
         activeCategory = cat.id;
         saveFilter();
         rebuildDeck();
@@ -135,28 +176,31 @@
     }
   }
 
-  function showLockedCard() {
+  function showLockedCategoryCard() {
     const deckEl = $('fcDeck');
     deckEl.style.display = '';
     $('fcEmpty').hidden = true;
-    $('fcCardTag').textContent = 'Examen-pack vereist';
-    $('fcCardTagBack').textContent = 'Examen-pack vereist';
-    $('fcCardQ').innerHTML = `
+    const cat = data.categories.find(c => c.id === activeCategory);
+    const label = cat ? cat.label : activeCategory;
+    const lockedHtml = `
       <div style="text-align:center; width:100%;">
         <div style="font-size:3rem; margin-bottom:0.6rem;">💎</div>
-        <div style="font-family:'Lora',serif; font-size:1.4rem; margin-bottom:0.6rem;">Ontgrendel alle ${data.cards.length} kaarten</div>
+        <div style="font-family:'Lora',serif; font-size:1.4rem; margin-bottom:0.6rem;">${label}</div>
         <div style="font-size:0.95rem; color:var(--text-soft); margin-bottom:1.4rem; line-height:1.5;">
-          Je hebt de eerste ${FREE_LIMIT} gratis kaarten doorlopen.<br>
-          De overige ${data.cards.length - FREE_LIMIT}+ kaarten zitten in het Examen-pack.
+          Deze categorie zit in het Examen-pack.<br>
+          De flashcards van <strong>Inleiding</strong> en <strong>Deel 1</strong> kun je gratis oefenen.
         </div>
         <button class="paywall-btn" data-open-unlock type="button">
           💎 Examen-pack ontgrendelen — €5
         </button>
       </div>`;
-    $('fcCardA').innerHTML = $('fcCardQ').innerHTML;
-    $('fcCounter').textContent = `${FREE_LIMIT} / ${data.cards.length} (gratis preview)`;
+    $('fcCardTag').textContent = 'Examen-pack vereist';
+    $('fcCardTagBack').textContent = 'Examen-pack vereist';
+    $('fcCardQ').innerHTML = lockedHtml;
+    $('fcCardA').innerHTML = lockedHtml;
+    $('fcCounter').textContent = '— · vergrendeld';
     card().classList.remove('flipped');
-    $('fcPrevBtn').disabled = false;
+    $('fcPrevBtn').disabled = true;
     $('fcNextBtn').disabled = true;
     $('fcKnownBtn').disabled = true;
     $('fcUnknownBtn').disabled = true;
@@ -165,6 +209,13 @@
   function renderCard() {
     const empty = $('fcEmpty');
     const deckEl = $('fcDeck');
+
+    // Locked category for free user
+    if (!isCategoryFree(activeCategory)) {
+      showLockedCategoryCard();
+      return;
+    }
+
     if (deck.length === 0) {
       deckEl.style.display = 'none';
       empty.hidden = false;
@@ -176,12 +227,6 @@
     if (pos < 0) pos = 0;
     if (pos >= deck.length) pos = deck.length - 1;
 
-    // Gate: free users see only first FREE_LIMIT cards of any deck
-    if (!unlocked() && pos >= FREE_LIMIT) {
-      showLockedCard();
-      return;
-    }
-
     const idx = deck[pos];
     const c = data.cards[idx];
     const cat = data.categories.find(x => x.id === c.cat);
@@ -191,9 +236,7 @@
     $('fcCardTagBack').textContent = tag;
     $('fcCardQ').textContent = c.q;
     $('fcCardA').innerHTML = mdToHtml(c.a);
-    const totalLabel = unlocked() ? deck.length : Math.min(FREE_LIMIT, deck.length);
-    const lockedNote = (!unlocked() && deck.length > FREE_LIMIT) ? ` van ${deck.length} (Pro)` : '';
-    $('fcCounter').textContent = `${pos + 1} / ${totalLabel}${lockedNote}`;
+    $('fcCounter').textContent = `${pos + 1} / ${deck.length}`;
     card().classList.remove('flipped');
 
     $('fcPrevBtn').disabled = pos === 0;
@@ -201,7 +244,6 @@
     $('fcKnownBtn').disabled = false;
     $('fcUnknownBtn').disabled = false;
 
-    // Visually mark known/unknown buttons depending on current state
     const state = progress[idx];
     $('fcKnownBtn').classList.toggle('active', state === 'known');
     $('fcUnknownBtn').classList.toggle('active', state === 'unknown');
@@ -209,19 +251,19 @@
 
   function flipCard() {
     if (deck.length === 0) return;
+    if (!isCategoryFree(activeCategory)) return;
     card().classList.toggle('flipped');
   }
-
   function next() {
-    // Free users: allow stepping to position FREE_LIMIT (locked card screen),
-    // but no further.
-    const maxPos = unlocked() ? deck.length - 1 : Math.min(deck.length - 1, FREE_LIMIT);
-    if (pos < maxPos) { pos++; renderCard(); }
+    if (!isCategoryFree(activeCategory)) return;
+    if (pos < deck.length - 1) { pos++; renderCard(); }
   }
   function prev() {
+    if (!isCategoryFree(activeCategory)) return;
     if (pos > 0) { pos--; renderCard(); }
   }
   function rate(state) {
+    if (!isCategoryFree(activeCategory)) return;
     if (deck.length === 0) return;
     const idx = deck[pos];
     progress[idx] = state;
@@ -232,7 +274,6 @@
       renderFilters();
       renderCard();
     } else {
-      // auto-advance to next card after rating
       if (pos < deck.length - 1) {
         setTimeout(() => { pos++; renderCard(); }, 180);
       } else {
@@ -240,7 +281,6 @@
       }
     }
   }
-
   function resetProgress() {
     if (!confirm('Weet je zeker dat je alle voortgang wil wissen? Deze actie kan niet ongedaan gemaakt worden.')) return;
     progress = {};
@@ -259,7 +299,7 @@
       const res = await fetch('flashcards.json');
       data = await res.json();
     } catch (e) {
-      $('fcCardQ').textContent = 'Kon flashcards niet laden. Open de site via een webserver (niet via file://).';
+      $('fcCardQ').textContent = 'Kon flashcards niet laden. Open de site via een webserver.';
       return;
     }
 
@@ -268,13 +308,12 @@
     renderCard();
     updateStats();
 
-    // Wire up
     card().addEventListener('click', flipCard);
     $('fcNextBtn').addEventListener('click', next);
     $('fcPrevBtn').addEventListener('click', prev);
     $('fcKnownBtn').addEventListener('click', () => rate('known'));
     $('fcUnknownBtn').addEventListener('click', () => rate('unknown'));
-    $('fcShuffleBtn').addEventListener('click', () => { shuffleDeck(); renderCard(); });
+    $('fcShuffleBtn').addEventListener('click', () => { if (isCategoryFree(activeCategory)) { shuffleDeck(); renderCard(); } });
     $('fcResetBtn').addEventListener('click', resetProgress);
     const sm = $('fcStudyMode');
     sm.checked = studyMode;
@@ -286,26 +325,27 @@
       renderCard();
     });
 
+    // Re-render when unlock state changes (cross-tab too)
+    if (window.Auth && window.Auth.onChange) {
+      window.Auth.onChange(() => {
+        rebuildDeck();
+        renderFilters();
+        renderCard();
+        updateStats();
+      });
+    }
+
     document.addEventListener('keydown', (e) => {
-      // Don't intercept while typing in inputs
       if (e.target.matches('input, textarea')) return;
-      // Don't intercept if PDF modal is open
       const modal = document.getElementById('pdfModal');
       if (modal && !modal.hidden) return;
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        flipCard();
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        next();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        prev();
-      } else if (e.key === '1') {
-        rate('unknown');
-      } else if (e.key === '2') {
-        rate('known');
-      }
+      const unlockModal = document.getElementById('unlockModal');
+      if (unlockModal && !unlockModal.hidden) return;
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipCard(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === '1') { rate('unknown'); }
+      else if (e.key === '2') { rate('known'); }
     });
   }
 
