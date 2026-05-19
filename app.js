@@ -94,11 +94,16 @@
       });
     });
 
-    // PDF modal triggers
+    // PDF modal triggers — gated behind Examen-pack
     document.addEventListener('click', (e) => {
       const trigger = e.target.closest('[data-page]');
       if (trigger) {
         e.preventDefault();
+        // Gate the handboek behind the pack
+        if (window.Auth && !window.Auth.isUnlocked()) {
+          window.Auth.openUnlockModal();
+          return;
+        }
         openPdf(trigger.getAttribute('data-page'));
         return;
       }

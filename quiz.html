@@ -3,28 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Volledige examensamenvatting Vennootschapsrecht — ACA1 HoGent (T. Cluyse) — academiejaar 2025-2026.">
-<title>Oefenquiz · Vennootschapsrecht Samenvatting</title>
+<meta name="description" content="Interactieve quiz Vennootschapsrecht — test je examenkennis met directe feedback.">
+<title>Quiz · Vennootschapsrecht Samenvatting</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+  .quiz-header h1 { font-family: 'Lora', serif; font-size: 2rem; margin: 0 0 0.4rem; border-bottom: 2px solid var(--accent); padding-bottom: 0.4rem; }
+  .quiz-lead { color: var(--text-soft); font-size: 0.98rem; }
+  .quiz-progress { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0.7rem 1rem; margin: 1.2rem 0; display: flex; align-items: center; justify-content: space-between; font-size: 0.92rem; }
+  .quiz-progress-bar { flex: 1; height: 8px; background: var(--code-bg); border-radius: 4px; margin: 0 1rem; overflow: hidden; }
+  .quiz-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-hover)); transition: width 0.3s; width: 0%; }
+  .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.6rem 1.8rem; margin: 1rem 0; box-shadow: var(--shadow); }
+  .quiz-cat-tag { display: inline-block; background: var(--accent-soft); color: var(--accent); padding: 0.2rem 0.6rem; border-radius: 16px; font-size: 0.74rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.7rem; }
+  .quiz-question { font-family: 'Lora', serif; font-size: 1.25rem; color: var(--text); margin: 0 0 1.2rem; line-height: 1.4; }
+  .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; }
+  .quiz-option { display: flex; align-items: center; gap: 0.7rem; padding: 0.8rem 1rem; background: var(--bg); border: 2px solid var(--border); border-radius: 10px; cursor: pointer; text-align: left; font-family: inherit; font-size: 0.96rem; color: var(--text); transition: all 0.12s; }
+  .quiz-option:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+  .quiz-option .quiz-letter { width: 28px; height: 28px; background: var(--code-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.88rem; flex-shrink: 0; }
+  .quiz-option.correct { border-color: #2f7d32; background: #ecf6ec; color: #2f7d32; }
+  [data-theme="dark"] .quiz-option.correct { background: #1b2a1e; color: #5cb35f; }
+  .quiz-option.correct .quiz-letter { background: #2f7d32; color: white; }
+  .quiz-option.incorrect { border-color: #c0392b; background: #fde7e2; color: #c0392b; }
+  [data-theme="dark"] .quiz-option.incorrect { background: #3a1815; color: #ec7058; }
+  .quiz-option.incorrect .quiz-letter { background: #c0392b; color: white; }
+  .quiz-option:disabled { cursor: default; }
+  .quiz-feedback { margin-top: 1rem; padding: 0.9rem 1.1rem; background: var(--def-bg); border-left: 4px solid var(--def-border); border-radius: 0 8px 8px 0; font-size: 0.92rem; line-height: 1.55; display: none; }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback strong { color: var(--accent); }
+  .quiz-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1.2rem; gap: 0.7rem; flex-wrap: wrap; }
+  .quiz-next-btn, .quiz-restart-btn { background: var(--accent); color: white; border: none; padding: 0.7rem 1.4rem; border-radius: 8px; font-family: inherit; font-size: 0.95rem; cursor: pointer; font-weight: 500; }
+  .quiz-next-btn:hover, .quiz-restart-btn:hover { background: var(--accent-hover); }
+  .quiz-next-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .quiz-score-card { background: linear-gradient(135deg, var(--surface), var(--accent-soft)); border: 2px solid var(--accent); border-radius: 14px; padding: 2rem; text-align: center; }
+  .quiz-score-big { font-family: 'Lora', serif; font-size: 3.5rem; color: var(--accent); font-weight: 700; line-height: 1; }
+  .quiz-score-label { color: var(--text-soft); font-size: 1rem; margin-top: 0.3rem; }
+  .quiz-score-msg { margin: 1rem 0; font-size: 1.05rem; color: var(--text); }
+  .quiz-cat-filter { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin: 1rem 0 1.5rem; }
+  .quiz-cat-filter label { display: block; font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; font-weight: 600; }
+  .quiz-cat-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .quiz-cat-chip { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 0.3rem 0.7rem; border-radius: 16px; font-size: 0.83rem; cursor: pointer; font-family: inherit; }
+  .quiz-cat-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .quiz-locked { background: linear-gradient(180deg, var(--bg) 0%, var(--accent-soft) 100%); border: 2px dashed var(--accent); border-radius: 12px; padding: 2.5rem 2rem; text-align: center; margin: 1.5rem 0; }
+  .quiz-locked-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+  .quiz-locked h2 { font-family: 'Lora', serif; font-size: 1.4rem; margin: 0 0 0.5rem; color: var(--text); }
+  .quiz-locked p { color: var(--text-soft); max-width: 420px; margin: 0.5rem auto 1.2rem; line-height: 1.5; }
+</style>
 </head>
 <body>
 <div class="progress-bar"></div>
 <header class="site-header">
   <div class="header-inner">
-    <a href="index.html" class="site-title">
-      Vennootschapsrecht
-      <span class="subtitle">Samenvatting · HoGent · ACA1</span>
-    </a>
+    <a href="index.html" class="site-title">Vennootschapsrecht<span class="subtitle">Samenvatting · HoGent · ACA1</span></a>
     <div class="header-actions">
-      <button class="book-open-btn" data-page="1" type="button" title="Open handboek">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-        <span class="book-open-btn-label">Handboek</span>
-      </button>
-      <button class="menu-toggle" aria-label="Menu">☰</button>
-      <button class="theme-toggle" aria-label="Thema">🌙 Donker</button>
+      <span data-pack-status></span>
+      <button class="book-open-btn" data-page="1" type="button"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="book-open-btn-label">Handboek</span></button>
+      <button class="menu-toggle">☰</button>
+      <button class="theme-toggle">🌙 Donker</button>
     </div>
   </div>
 </header>
@@ -32,138 +68,201 @@
 <div class="layout">
   <aside class="sidebar">
     <nav>
-      <div class="sidebar-title">Hoofdstukken</div>
-<a href="inleiding.html" class="nav-page"><span class="num">00</span>Inleiding</a>
-<a href="deel1-h2-h3.html" class="nav-page"><span class="num">01</span>Deel 1 · H2-H3</a>
-<a href="deel2-h1.html" class="nav-page"><span class="num">02</span>Maatschap, VOF, CommV</a>
-<a href="deel2-h2-bv.html" class="nav-page"><span class="num">03</span>BV</a>
-<a href="deel2-h3-h4-cv-nv.html" class="nav-page"><span class="num">04</span>CV &amp; NV</a>
-<a href="deel3-deel5-deel6.html" class="nav-page"><span class="num">05</span>VZW, Europees, Insolventie</a>
-<a href="vergelijkende-tabel.html" class="nav-page"><span class="num">06</span>Vergelijkende tabel</a>
-<a href="aanvullend.html" class="nav-page"><span class="num">07</span>Eenmanszaak &amp; Tarief</a>
-<a href="faillissement.html" class="nav-page"><span class="num">08</span>Faillissement</a>
-<a href="studietips.html" class="nav-page"><span class="num">09</span>Studietips</a>
-<a href="quiz.html" class="nav-page active"><span class="num">10</span>Quiz</a>
-<a href="flashcards.html" class="nav-page"><span class="num">11</span>Flashcards</a>
-      
+      <div class="sidebar-title">Gratis hoofdstukken</div>
+      <a href="inleiding.html" class="nav-page"><span class="num">00</span>Inleiding</a>
+      <a href="deel1-h2-h3.html" class="nav-page"><span class="num">01</span>Deel 1 · H2-H3</a>
+      <a href="deel2-h1.html" class="nav-page"><span class="num">02</span>Maatschap, VOF, CommV</a>
+      <a href="deel2-h2-bv.html" class="nav-page"><span class="num">03</span>BV</a>
+      <a href="deel2-h3-h4-cv-nv.html" class="nav-page"><span class="num">04</span>CV &amp; NV</a>
+      <a href="deel3-deel5-deel6.html" class="nav-page"><span class="num">05</span>VZW, Europees, Insolventie</a>
+      <a href="vergelijkende-tabel.html" class="nav-page"><span class="num">06</span>Vergelijkende tabel</a>
+      <a href="aanvullend.html" class="nav-page"><span class="num">07</span>Eenmanszaak &amp; Tarief</a>
+      <a href="faillissement.html" class="nav-page"><span class="num">08</span>Faillissement</a>
+      <a href="studietips.html" class="nav-page"><span class="num">09</span>Studietips</a>
+      <a href="quiz.html" class="nav-page active"><span class="num">10</span>Quiz</a>
+      <a href="flashcards.html" class="nav-page"><span class="num">11</span>Flashcards</a>
+      <div class="sidebar-title" style="margin-top:1.2rem">💎 Examen-pack</div>
+      <a href="examen-pack.html" class="nav-page"><span class="num">P</span>💎 Examen-pack</a>
+      <a href="cheat-sheet.html" class="nav-page"><span class="num">P</span>🔒 Cheat-sheet</a>
+      <a href="speedrun.html" class="nav-page"><span class="num">P</span>🔒 Speedrun</a>
     </nav>
   </aside>
   <main>
-    
-    <h1 id="oefenquiz-eenmanszaak-of-vennootschap">Oefenquiz: Eenmanszaak of Vennootschap?</h1>
-<p><em>10 meerkeuzevragen uit de oefeningbundel van docent Cluyse (MCS 2025-2026). Bedek de antwoorden onderaan voor je kijkt.</em></p>
-<h2 id="vragen">Vragen</h2>
-<h3 id="1-wie-is-eigenaar-van-een-eenmanszaak">1. Wie is eigenaar van een eenmanszaak?</h3>
-<ul>
-<li>A. Eén natuurlijke persoon</li>
-<li>B. Twee vennoten</li>
-<li>C. Een rechtspersoon</li>
-<li>D. Een vereniging</li>
-</ul>
-<h3 id="2-wat-is-een-belangrijk-nadeel-van-een-eenmanszaak">2. Wat is een belangrijk nadeel van een eenmanszaak?</h3>
-<ul>
-<li>A. Hoge oprichtingskosten</li>
-<li>B. Aansprakelijkheid met het volledige privévermogen</li>
-<li>C. Verplichte jaarrekening neerleggen</li>
-<li>D. Minimumkapitaal</li>
-</ul>
-<h3 id="3-welk-voordeel-hoort-bij-een-eenmanszaak">3. Welk voordeel hoort bij een eenmanszaak?</h3>
-<ul>
-<li>A. Lage vennootschapsbelasting</li>
-<li>B. Je hoeft geen financieel plan op te stellen</li>
-<li>C. Beperkte aansprakelijkheid</li>
-<li>D. Onbeperkte bestaansduur</li>
-</ul>
-<h3 id="4-wat-is-een-kenmerk-van-een-vennootschap">4. Wat is een kenmerk van een vennootschap?</h3>
-<ul>
-<li>A. Geen eigen rechtspersoonlijkheid</li>
-<li>B. Heeft altijd slechts één eigenaar</li>
-<li>C. Bezit eigen rechten en plichten</li>
-<li>D. Heeft geen boekhoudkundige verplichtingen</li>
-</ul>
-<h3 id="5-welk-voordeel-behoort-tot-een-vennootschap">5. Welk voordeel behoort tot een vennootschap?</h3>
-<ul>
-<li>A. Geen oprichtingskosten</li>
-<li>B. Beperkte aansprakelijkheid</li>
-<li>C. Geen financieel plan nodig</li>
-<li>D. Geen afspraken op papier vereist</li>
-</ul>
-<h3 id="6-welke-vennootschapsvorm-vereist-een-minimumkapitaal">6. Welke vennootschapsvorm vereist een minimumkapitaal?</h3>
-<ul>
-<li>A. BV</li>
-<li>B. CV</li>
-<li>C. NV</li>
-<li>D. Maatschap</li>
-</ul>
-<h3 id="7-wat-is-een-nadeel-van-een-vennootschap">7. Wat is een nadeel van een vennootschap?</h3>
-<ul>
-<li>A. Je betaalt altijd personenbelasting</li>
-<li>B. Onbeperkte aansprakelijkheid</li>
-<li>C. De oprichting brengt extra kosten mee</li>
-<li>D. De vennootschap stopt automatisch bij overlijden van een vennoot</li>
-</ul>
-<h3 id="8-wat-is-een-voordeel-van-het-werken-met-meerdere-vennoten">8. Wat is een voordeel van het werken met meerdere vennoten?</h3>
-<ul>
-<li>A. Meer administratieve verplichtingen</li>
-<li>B. Financiële middelen kunnen worden samengebracht</li>
-<li>C. Verplicht minimumkapitaal</li>
-<li>D. Personenbelasting</li>
-</ul>
-<h3 id="9-welke-ondernemingsvorm-kan-een-belangeloos-doel-nastreven">9. Welke ondernemingsvorm kan een belangeloos doel nastreven?</h3>
-<ul>
-<li>A. Eenmanszaak</li>
-<li>B. BV</li>
-<li>C. VZW</li>
-<li>D. NV</li>
-</ul>
-<h3 id="10-wat-gebeurt-er-bij-faillissement-van-een-eenmanszaak">10. Wat gebeurt er bij faillissement van een eenmanszaak?</h3>
-<ul>
-<li>A. Enkel de zaak gaat failliet</li>
-<li>B. De ondernemer als natuurlijke persoon gaat ook failliet</li>
-<li>C. De vennootschap wordt ontbonden</li>
-<li>D. Het privévermogen blijft volledig beschermd</li>
-</ul>
-<hr />
-<h2 id="antwoorden">Antwoorden</h2>
-<ol>
-<li><strong>A</strong> — Een eenmanszaak heeft per definitie één natuurlijke persoon als eigenaar.</li>
-<li><strong>B</strong> — Er is geen scheiding tussen privé- en zakelijk vermogen.</li>
-<li><strong>B</strong> — Geen financieel plan, geen oprichtingsakte, geen minimumkapitaal nodig.</li>
-<li><strong>C</strong> — Een vennootschap (met uitzondering van de maatschap) heeft rechtspersoonlijkheid en bezit dus eigen rechten en plichten.</li>
-<li><strong>B</strong> — Bij BV, NV, CV is de aansprakelijkheid beperkt tot de inbreng.</li>
-<li><strong>C</strong> — Enkel de NV vereist een <strong>minimumkapitaal van €61.500</strong>. BV en CV werken met "toereikend aanvangsvermogen" zonder wettelijk minimum.</li>
-<li><strong>C</strong> — Notariskosten, publicatie, financieel plan — een vennootschap oprichten kost geld.</li>
-<li><strong>B</strong> — Meerdere vennoten kunnen meer kapitaal bijbrengen dan één persoon alleen.</li>
-<li><strong>C</strong> — Een vzw streeft per definitie een belangeloos doel na. Vennootschappen streven naar vermogensvoordeel voor de vennoten.</li>
-<li><strong>B</strong> — Geen rechtspersoonlijkheid = geen scheiding tussen zaak en persoon = faillissement van de natuurlijke persoon zelf.</li>
-</ol>
+    <header class="quiz-header">
+      <h1>Interactieve Quiz</h1>
+      <p class="quiz-lead">Test je examenkennis. Selecteer een onderwerp of beantwoord alle vragen. Je krijgt directe feedback per vraag. <strong>Gratis: 10 vragen per sessie · Pack: alle 50+ vragen.</strong></p>
+    </header>
+
+    <div class="quiz-cat-filter">
+      <label>Onderwerp</label>
+      <div class="quiz-cat-chips" id="quizCatChips"></div>
+    </div>
+
+    <div class="quiz-progress" id="quizProgress" style="display:none">
+      <span id="quizPos">Vraag 1 / 10</span>
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizFill"></div></div>
+      <span id="quizScore">0 ✓</span>
+    </div>
+
+    <div id="quizContent"></div>
   </main>
 </div>
 <footer>
-  <p>Samenvatting op basis van <em>Praktisch Vennootschapsrecht 2025</em> (Van In) — academiejaar 2025-2026.<br>
-  Docent: T. Cluyse — HoGent — Graduaat Accounting Administration.<br>
-  Gemaakt om vrij te delen met medestudenten · <a href="index.html">Terug naar startpagina</a></p>
+  <p>Quiz-module · <a href="index.html">terug naar startpagina</a></p>
 </footer>
 
-<div class="pdf-modal" id="pdfModal" hidden aria-hidden="true" role="dialog" aria-labelledby="pdfModalTitle">
+<div class="pdf-modal" id="pdfModal" hidden role="dialog">
   <div class="pdf-modal-backdrop" data-close></div>
   <div class="pdf-modal-content">
     <div class="pdf-modal-header">
-      <div class="pdf-modal-title" id="pdfModalTitle">
-        Praktisch Vennootschapsrecht 2025 — <span>pagina <strong id="pdfPageLabel">1</strong></span>
-      </div>
+      <div class="pdf-modal-title">Praktisch Vennootschapsrecht 2025 — <span>pagina <strong id="pdfPageLabel">1</strong></span></div>
       <div class="pdf-modal-actions">
-        <button class="pdf-page-btn" data-action="prev" title="Vorige pagina">←</button>
-        <input class="pdf-page-input" type="number" min="1" max="264" value="1" aria-label="Ga naar pagina">
-        <button class="pdf-page-btn" data-action="next" title="Volgende pagina">→</button>
-        <a class="pdf-open-tab" href="boek.pdf" target="_blank" rel="noopener" title="Open in nieuw tabblad">⤴ Nieuw tabblad</a>
-        <button class="pdf-modal-close" data-close title="Sluiten">✕</button>
+        <button class="pdf-page-btn" data-action="prev">←</button>
+        <input class="pdf-page-input" type="number" min="1" max="264" value="1">
+        <button class="pdf-page-btn" data-action="next">→</button>
+        <a class="pdf-open-tab" href="boek.pdf" target="_blank">⤴ Nieuw tabblad</a>
+        <button class="pdf-modal-close" data-close>✕</button>
       </div>
     </div>
-    <iframe class="pdf-modal-iframe" src="" title="Praktisch Vennootschapsrecht — boek"></iframe>
+    <iframe class="pdf-modal-iframe" src=""></iframe>
   </div>
 </div>
 
+<script src="auth.js"></script>
 <script src="app.js"></script>
+<script>
+(function() {
+  const FREE_LIMIT = 10;
+  let data = null;
+  let pool = [];
+  let pos = 0;
+  let score = 0;
+  let answered = false;
+  let activeCat = 'all';
+
+  function unlocked() { return window.Auth && window.Auth.isUnlocked(); }
+  const $ = id => document.getElementById(id);
+  function shuffle(arr) { const a = arr.slice(); for (let i = a.length-1; i>0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+  function renderCatChips() {
+    const cats = ['all', ...new Set(data.questions.map(q => q.cat))];
+    const labels = { 'all': 'Alle onderwerpen' };
+    const wrap = $('quizCatChips');
+    wrap.innerHTML = '';
+    cats.forEach(id => {
+      const count = id === 'all' ? data.questions.length : data.questions.filter(q => q.cat === id).length;
+      const btn = document.createElement('button');
+      btn.className = 'quiz-cat-chip' + (activeCat === id ? ' active' : '');
+      btn.innerHTML = `${labels[id] || id} <span style="opacity:.6">(${count})</span>`;
+      btn.addEventListener('click', () => { activeCat = id; startQuiz(); });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function startQuiz() {
+    pool = activeCat === 'all' ? data.questions.slice() : data.questions.filter(q => q.cat === activeCat);
+    pool = shuffle(pool);
+    pos = 0;
+    score = 0;
+    answered = false;
+    renderCatChips();
+    $('quizProgress').style.display = 'flex';
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    answered = false;
+    const limit = unlocked() ? pool.length : Math.min(FREE_LIMIT, pool.length);
+    if (pos >= limit) { renderScore(); return; }
+    const q = pool[pos];
+    $('quizPos').textContent = `Vraag ${pos+1} / ${limit}`;
+    $('quizScore').textContent = `${score} ✓`;
+    $('quizFill').style.width = ((pos / limit) * 100) + '%';
+
+    const optsHtml = q.options.map((opt, i) => `
+      <button class="quiz-option" data-i="${i}">
+        <span class="quiz-letter">${String.fromCharCode(65+i)}</span>
+        <span>${opt}</span>
+      </button>`).join('');
+
+    $('quizContent').innerHTML = `
+      <div class="quiz-card">
+        <div class="quiz-cat-tag">${q.cat}</div>
+        <div class="quiz-question">${q.q}</div>
+        <div class="quiz-options" id="quizOpts">${optsHtml}</div>
+        <div class="quiz-feedback" id="quizFb"></div>
+        <div class="quiz-actions">
+          <span style="color:var(--muted);font-size:.85rem">Klik op je antwoord</span>
+          <button class="quiz-next-btn" id="quizNextBtn" disabled>Volgende vraag →</button>
+        </div>
+      </div>`;
+
+    document.querySelectorAll('.quiz-option').forEach(btn => {
+      btn.addEventListener('click', () => answerQuestion(parseInt(btn.dataset.i)));
+    });
+    $('quizNextBtn').addEventListener('click', () => { pos++; renderQuestion(); });
+  }
+
+  function answerQuestion(choice) {
+    if (answered) return;
+    answered = true;
+    const q = pool[pos];
+    document.querySelectorAll('.quiz-option').forEach((b, i) => {
+      b.disabled = true;
+      if (i === q.correct) b.classList.add('correct');
+      else if (i === choice) b.classList.add('incorrect');
+    });
+    if (choice === q.correct) { score++; $('quizScore').textContent = `${score} ✓`; }
+    const fb = $('quizFb');
+    fb.innerHTML = `<strong>${choice === q.correct ? '✓ Correct!' : '✗ Fout. Juist antwoord: ' + String.fromCharCode(65+q.correct)}</strong> — ${q.explanation}`;
+    fb.classList.add('show');
+    $('quizNextBtn').disabled = false;
+  }
+
+  function renderScore() {
+    const total = unlocked() ? pool.length : Math.min(FREE_LIMIT, pool.length);
+    const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+    let msg;
+    if (pct >= 90) msg = '🏆 Uitstekend! Klaar voor het examen.';
+    else if (pct >= 75) msg = '✨ Sterke score — nog een laatste herhaling en je bent goed.';
+    else if (pct >= 50) msg = '📚 Niet slecht — focus op de fouten en doe nog een ronde.';
+    else msg = '💪 Tijd om de samenvatting er nog eens bij te pakken.';
+
+    let lockBanner = '';
+    if (!unlocked() && data.questions.length > FREE_LIMIT) {
+      lockBanner = `
+        <div class="quiz-locked" style="margin-top:1.5rem">
+          <div class="quiz-locked-icon">💎</div>
+          <h2>${data.questions.length - FREE_LIMIT}+ extra vragen in het Examen-pack</h2>
+          <p>Je hebt de ${FREE_LIMIT} gratis vragen doorlopen. Voor de volledige quizbank (alle ${data.questions.length} vragen, filter per onderwerp), ontgrendel het Examen-pack.</p>
+          <button class="paywall-btn" data-open-unlock>💎 Examen-pack ontgrendelen — €5</button>
+        </div>`;
+    }
+
+    $('quizContent').innerHTML = `
+      <div class="quiz-score-card">
+        <div class="quiz-score-big">${score}/${total}</div>
+        <div class="quiz-score-label">${pct}% correct</div>
+        <div class="quiz-score-msg">${msg}</div>
+        <button class="quiz-restart-btn" onclick="location.reload()">↻ Opnieuw beginnen</button>
+      </div>
+      ${lockBanner}`;
+    $('quizFill').style.width = '100%';
+  }
+
+  async function init() {
+    try {
+      const res = await fetch('quiz-data.json');
+      data = await res.json();
+    } catch (e) {
+      $('quizContent').innerHTML = '<p>Kon vragen niet laden.</p>';
+      return;
+    }
+    startQuiz();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Last-minute speedrun Vennootschapsrecht — alle examen-leerstof in 30 minuten doorgenomen.">
+<title>Last-minute Speedrun · Examen-pack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .sr-banner {
+    background: linear-gradient(135deg, #2a0e14, #6b1f2b);
+    color: white;
+    padding: 1.5rem 1.8rem;
+    border-radius: 14px;
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  .sr-banner .sr-time {
+    font-family: 'Lora', serif;
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: #f5d488;
+    line-height: 1;
+  }
+  .sr-banner .sr-title { font-family: 'Lora', serif; font-size: 1.4rem; margin: 0 0 0.2rem; }
+  .sr-banner .sr-sub { opacity: 0.85; font-size: 0.95rem; margin: 0; }
+  .sr-section {
+    margin: 2rem 0;
+    padding-left: 1.2rem;
+    border-left: 3px solid var(--accent);
+  }
+  .sr-section > h2 {
+    font-family: 'Lora', serif;
+    color: var(--accent);
+    margin: 0 0 0.6rem;
+    font-size: 1.4rem;
+  }
+  .sr-section > .sr-tag {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.15rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.5rem;
+  }
+  .sr-checkpoint {
+    background: var(--tip-bg);
+    border-left: 4px solid var(--tip-border);
+    padding: 0.9rem 1.2rem;
+    margin: 1rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .sr-checkpoint::before {
+    content: "✓ CHECKPOINT";
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: var(--tip-border);
+    margin-bottom: 0.3rem;
+  }
+  .sr-pitfall {
+    background: var(--warn-bg);
+    border-left: 4px solid var(--warn-border);
+    padding: 0.9rem 1.2rem;
+    margin: 1rem 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .sr-pitfall::before {
+    content: "⚠ TYPISCHE VAL";
+    display: block;
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    font-weight: 700;
+    color: var(--warn-border);
+    margin-bottom: 0.3rem;
+  }
+  .sr-section h3 { margin-top: 1.2rem; color: var(--text); }
+  .sr-toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    margin: 0 0 2rem;
+  }
+  .sr-toc h2 { margin: 0 0 0.6rem; font-size: 1rem; color: var(--accent); }
+  .sr-toc ol { margin: 0; padding-left: 1.4rem; columns: 2; }
+  .sr-toc a { color: var(--text); text-decoration: none; font-size: 0.92rem; }
+  .sr-toc a:hover { color: var(--accent); }
+  @media (max-width: 700px) { .sr-toc ol { columns: 1; } .sr-banner { flex-direction: column; text-align: center; gap: 0.6rem; } }
+</style>
+</head>
+<body>
+<div class="progress-bar"></div>
+<header class="site-header">
+  <div class="header-inner">
+    <a href="index.html" class="site-title">Vennootschapsrecht<span class="subtitle">Samenvatting · HoGent · ACA1</span></a>
+    <div class="header-actions">
+      <span data-pack-status></span>
+      <button class="book-open-btn" data-page="1" type="button"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="book-open-btn-label">Handboek</span></button>
+      <button class="menu-toggle">☰</button>
+      <button class="theme-toggle">🌙 Donker</button>
+    </div>
+  </div>
+</header>
+<div class="sidebar-overlay"></div>
+<div class="layout">
+  <aside class="sidebar">
+    <nav>
+      <div class="sidebar-title">Gratis hoofdstukken</div>
+      <a href="inleiding.html" class="nav-page"><span class="num">00</span>Inleiding</a>
+      <a href="deel1-h2-h3.html" class="nav-page"><span class="num">01</span>Deel 1 · H2-H3</a>
+      <a href="deel2-h1.html" class="nav-page"><span class="num">02</span>Maatschap, VOF, CommV</a>
+      <a href="deel2-h2-bv.html" class="nav-page"><span class="num">03</span>BV</a>
+      <a href="deel2-h3-h4-cv-nv.html" class="nav-page"><span class="num">04</span>CV &amp; NV</a>
+      <a href="deel3-deel5-deel6.html" class="nav-page"><span class="num">05</span>VZW, Europees, Insolventie</a>
+      <a href="vergelijkende-tabel.html" class="nav-page"><span class="num">06</span>Vergelijkende tabel</a>
+      <a href="aanvullend.html" class="nav-page"><span class="num">07</span>Eenmanszaak &amp; Tarief</a>
+      <a href="faillissement.html" class="nav-page"><span class="num">08</span>Faillissement</a>
+      <a href="studietips.html" class="nav-page"><span class="num">09</span>Studietips</a>
+      <a href="quiz.html" class="nav-page"><span class="num">10</span>Quiz</a>
+      <a href="flashcards.html" class="nav-page"><span class="num">11</span>Flashcards</a>
+      <div class="sidebar-title" style="margin-top:1.2rem">💎 Examen-pack</div>
+      <a href="examen-pack.html" class="nav-page"><span class="num">P</span>💎 Examen-pack</a>
+      <a href="cheat-sheet.html" class="nav-page"><span class="num">P</span>🔒 Cheat-sheet</a>
+      <a href="speedrun.html" class="nav-page active"><span class="num">P</span>🔒 Speedrun</a>
+    </nav>
+  </aside>
+  <main>
+
+<div id="srLocked" class="paywall" hidden>
+  <div class="paywall-icon">⏱️</div>
+  <h3>Last-minute Speedrun — alleen voor Examen-pack</h3>
+  <p>De volledige leerstof in 30 minuten doorgenomen — perfect voor de avond vóór het examen. Bevat 12 ultradense thema's met checkpoints en typische valkuilen.</p>
+  <button class="paywall-btn" data-open-unlock>💎 Ontgrendel het pack — €5</button>
+  <div class="paywall-blur" style="margin-top:1.5rem;text-align:left">
+    <h2 style="color:var(--accent)">1. Het WVV in 60 seconden</h2>
+    <p>5 delen · 18 boeken · in werking 1/5/2019 · verving het oude W.Venn. Statutenwijziging tegen 1/1/2024…</p>
+  </div>
+</div>
+
+<div id="srPaid" hidden>
+  <div class="sr-banner">
+    <div class="sr-time">30<span style="font-size:1rem;opacity:0.7">min</span></div>
+    <div>
+      <h1 class="sr-title">Last-minute Speedrun</h1>
+      <p class="sr-sub">De volledige leerstof in één leessessie. Ideaal voor de avond vóór het examen — of een laatste herhaling 's ochtends.</p>
+    </div>
+  </div>
+
+  <div class="sr-toc">
+    <h2>📋 Inhoud (12 thema's · 30 min)</h2>
+    <ol>
+      <li><a href="#sr1">WVV — basis & structuur</a></li>
+      <li><a href="#sr2">Vennootschap vs. vereniging vs. stichting</a></li>
+      <li><a href="#sr3">Rechtspersoonlijkheid — 3 pijlers</a></li>
+      <li><a href="#sr4">Gemeenschappelijke bepalingen (Boek 2)</a></li>
+      <li><a href="#sr5">Jaarrekening (Boek 3)</a></li>
+      <li><a href="#sr6">Maatschap, VOF, CommV (Boek 4)</a></li>
+      <li><a href="#sr7">BV (Boek 5)</a></li>
+      <li><a href="#sr8">CV (Boek 6)</a></li>
+      <li><a href="#sr9">NV (Boek 7)</a></li>
+      <li><a href="#sr10">VZW & Stichting (Boek 9 + 11)</a></li>
+      <li><a href="#sr11">Europese vormen (SE, SCE, EESV)</a></li>
+      <li><a href="#sr12">Insolventie & Faillissement (WER XX)</a></li>
+    </ol>
+  </div>
+
+  <section class="sr-section" id="sr1">
+    <span class="sr-tag">2 min</span>
+    <h2>1. Het WVV — basis & structuur</h2>
+    <p>Het <strong>Wetboek van Vennootschappen en Verenigingen (WVV)</strong> trad in werking op <strong>1 mei 2019</strong> en verving het oude W.Venn. Het bevat <strong>5 delen en 18 boeken</strong>. Bestaande vennootschappen moesten hun statuten aanpassen tegen <strong>1/1/2024</strong>; cherry-picking was verboden vanaf 1/1/2020 bij de eerste statutenwijziging. Dwingende bepalingen werkten meteen.</p>
+    <p>Bronnen in volgorde van belangrijkheid: <strong>wetgeving → rechtspraak → rechtsleer → gewoonte</strong>. Bevoegde rechtbank: de <strong>ondernemingsrechtbank</strong>. Notatie: <code>art. 1:1 WVV</code> = Boek 1, artikel 1.</p>
+    <div class="sr-checkpoint">Je moet kunnen zeggen: <em>"5 delen, 18 boeken, in werking 1/5/2019, statuten conform tegen 1/1/2024, ondernemingsrechtbank bevoegd."</em></div>
+  </section>
+
+  <section class="sr-section" id="sr2">
+    <span class="sr-tag">2 min</span>
+    <h2>2. Vennootschap vs. vereniging vs. stichting</h2>
+    <p>Drie figuren met elk een eigen DNA:</p>
+    <ul>
+      <li><strong>Vennootschap (art. 1:1):</strong> rechtshandeling + inbreng + voorwerp + <strong>vermogensvoordeel</strong> (rechtstreeks/onrechtstreeks).</li>
+      <li><strong>Vereniging (art. 1:2):</strong> overeenkomst ≥ 2 personen + bepaalde activiteit + <strong>belangeloos doel</strong>; geen vermogensvoordeel uitkeren.</li>
+      <li><strong>Stichting (art. 1:3):</strong> rechtshandeling ≥ 1 persoon + bestemd vermogen + belangeloos doel; <strong>geen leden</strong>.</li>
+    </ul>
+    <p>De <strong>4 materiële geldigheidsvereisten</strong>: rechtshandeling · inbreng · voorwerp · vermogensvoordeel. Een vzw mag <strong>onbeperkt commercieel</strong> actief zijn sinds het WVV — zolang ze niet uitkeert.</p>
+    <div class="sr-pitfall">"Geen vermogensvoordeel" ≠ "geen winst maken". Een vzw mag winst maken, alleen niet uitkeren.</div>
+  </section>
+
+  <section class="sr-section" id="sr3">
+    <span class="sr-tag">2 min</span>
+    <h2>3. Rechtspersoonlijkheid — 3 pijlers</h2>
+    <p>De ruggegraat van het hele vak:</p>
+    <ul>
+      <li><strong>Geen RP</strong>: maatschap. Geen afgescheiden vermogen — alles is in onverdeeldheid bij de maten. Onbeperkt aansprakelijk.</li>
+      <li><strong>Onvolkomen RP</strong>: VOF en CommV. Wel afgescheiden vermogen, maar <em>vennoten blijven onbeperkt en hoofdelijk aansprakelijk</em>. CommV: stille vennoot is beperkt aansprakelijk tenzij hij zich bemoeit met bestuur.</li>
+      <li><strong>Volkomen RP</strong>: BV, NV, CV. <strong>Beperkte aansprakelijkheid</strong> tot de inbreng.</li>
+    </ul>
+    <p>Daarnaast: <strong>personenvennootschap</strong> (intuitu personae, moeilijk overdraagbaar — maatschap/VOF/CommV) vs. <strong>kapitaalvennootschap</strong> (vlot overdraagbaar — BV/NV/CV).</p>
+    <div class="sr-checkpoint">Ezelsbruggetje: <em>"Maatschap MIST alles · VOF/CommV HEBBEN maar BESCHERMEN niet · BV/NV/CV HEBBEN én BESCHERMEN."</em></div>
+  </section>
+
+  <section class="sr-section" id="sr4">
+    <span class="sr-tag">3 min</span>
+    <h2>4. Gemeenschappelijke bepalingen (Boek 2)</h2>
+    <p><strong>Verbintenis i.n.v. vennootschap in oprichting (art. 2:2):</strong> oprichter persoonlijk en hoofdelijk aansprakelijk, <em>tenzij</em> RP binnen 2 jaar én overname binnen 3 maanden.</p>
+    <p><strong>Naam (2:3):</strong> geen verwarring, rechtsvorm + ondernemingsnummer op alle stukken (2:20). <strong>Zetel (2:4):</strong> gewest in statuten volstaat (geen specifiek adres meer).</p>
+    <p><strong>Akte:</strong> notarieel voor BV/NV/CV/stichting · onderhands voor VOF/CommV/vzw · niets voor maatschap. RP ontstaat bij <strong>neerlegging op de griffie</strong> (2:6). Tegenwerpelijkheid aan derden vanaf 16e dag na publicatie (2:18).</p>
+    <p><strong>Bestuurdersaansprakelijkheid (2:56):</strong> gewone fout, schending wet/statuten, onrechtmatige daad, wrongful trading. <strong>Wettelijke cap (2:57):</strong> €125k → €12M afhankelijk van omvang. Cap geldt niet bij <em>bedrog, herhaalde fouten, RSZ/fiscus</em>.</p>
+    <p><strong>Geschillenregeling:</strong> uitsluiting (2:63, ≥30% stemrecht, belang vennootschap) of uittreding (2:68, belang vennoot). Voor niet-genoteerde BV/NV. Procedure: voorzitter ondernemingsrechtbank, zoals kort geding.</p>
+    <p><strong>Verjaring:</strong> 5 jaar algemeen (2:143 §1) · 6 maanden voor nietigheid AV-besluit (2:143 §4).</p>
+    <div class="sr-pitfall">Niet alle WVV-regels zijn tegenwerpelijk aan derden — statutaire beperkingen van de bestuursbevoegdheid <em>kunnen niet</em> tegen derden te goeder trouw worden ingeroepen.</div>
+  </section>
+
+  <section class="sr-section" id="sr5">
+    <span class="sr-tag">2 min</span>
+    <h2>5. Jaarrekening (Boek 3)</h2>
+    <p>Bestaat uit <strong>balans + resultatenrekening + toelichting</strong> (art. 3:1). Drie schema's:</p>
+    <ul>
+      <li><strong>Micro</strong>: max. 1 van 10 wn / €700k omzet / €350k balans.</li>
+      <li><strong>Klein (verkort)</strong>: max. 1 van 50 wn / €11,25M omzet / €6M balans.</li>
+      <li><strong>Groot (volledig)</strong>: ≥ 2 criteria overschreden.</li>
+    </ul>
+    <p>Neerlegging bij NBB binnen 30 dagen na AV, max. 7 maanden na boekjaar. <strong>Commissaris</strong> verplicht voor grote vennootschappen en bij ondernemingsraad — 3 jaar mandaat (3:58), bedrijfsrevisor. Geen commissaris? Vennoten hebben <strong>individueel controlerecht</strong> (3:101).</p>
+    <p>Moeder + dochters = <strong>geconsolideerde jaarrekening</strong> tenzij kleine groep (250 wn, €34M omzet, €17M balans).</p>
+  </section>
+
+  <section class="sr-section" id="sr6">
+    <span class="sr-tag">3 min</span>
+    <h2>6. Maatschap, VOF & CommV (Boek 4)</h2>
+    <p><strong>Maatschap:</strong> geen RP · geen vormvereisten (consensueel) · 3 varianten (gewone, tijdelijke, stille). Burgerlijke maatschap → aansprakelijkheid voor gelijke delen; handelsmaatschap → hoofdelijk. Fiscaal: <strong>personenbelasting</strong>.</p>
+    <p><strong>VOF:</strong> maatschap met onvolkomen RP. Onderhandse of authentieke akte. Vennoten: <strong>onbeperkt en hoofdelijk</strong> aansprakelijk. Vennootschapsbelasting. Geen minimumkapitaal.</p>
+    <p><strong>CommV:</strong> twee soorten vennoten:</p>
+    <ul>
+      <li><strong>Beherende vennoot</strong>: onbeperkt en hoofdelijk aansprakelijk · doet bestuur.</li>
+      <li><strong>Commanditaire (stille) vennoot</strong>: beperkt tot inbreng aansprakelijk · <em>mag zich niet bemoeien met bestuur</em> (art. 4:24 §2) — bij overtreding wordt hij persoonlijk en hoofdelijk aansprakelijk.</li>
+    </ul>
+    <p>Aandelen niet vrij overdraagbaar (eenparigheid van alle vennoten, art. 4:6).</p>
+    <div class="sr-checkpoint">Stille vennoot CommV → niet besturen, anders verlies van bescherming. Klassieke valkuilvraag.</div>
+  </section>
+
+  <section class="sr-section" id="sr7">
+    <span class="sr-tag">4 min</span>
+    <h2>7. BV (Boek 5) — de belangrijkste vorm</h2>
+    <p>BV vervangt de oude BVBA. Eenhoofdig mogelijk. Notariële akte verplicht.</p>
+    <p><strong>Geen minimumkapitaal</strong> meer — wel <strong>toereikend aanvangsvermogen</strong> (5:3) + <strong>financieel plan</strong> (5:4) dat de eerste 2 boekjaren dekt. Plan blijft bij de notaris en wordt pas publiek bij faillissement &lt; 3 jaar.</p>
+    <p><strong>Oprichtersaansprakelijkheid (5:16):</strong> faillissement binnen 3 jaar + kennelijk ontoereikend aanvangsvermogen → oprichters persoonlijk aansprakelijk.</p>
+    <p><strong>Inbreng:</strong> geld · natura (bedrijfsrevisor) · <strong>nijverheid</strong> (arbeid/knowhow, sinds WVV).</p>
+    <p><strong>Aandelen op naam · besloten regel (5:63):</strong> overdracht vereist instemming van <em>min. de helft van de aandeelhouders die min. 3/4 van de aandelen bezitten</em> (overdrager niet meegerekend), tenzij statuten anders.</p>
+    <p><strong>Uitkeringen — dubbele test:</strong></p>
+    <ul>
+      <li><strong>Balanstest (5:142):</strong> netto-actief mag niet negatief worden of onder onbeschikbaar EV.</li>
+      <li><strong>Liquiditeitstest (5:143):</strong> bestuur stelt vast dat opeisbare schulden 12 maanden lang betaalbaar blijven.</li>
+    </ul>
+    <p>Foute uitkering = bestuurders persoonlijk en hoofdelijk aansprakelijk.</p>
+    <p><strong>Alarmbel (5:153):</strong> bij dreigend negatief netto-actief of betalingsonmacht 12m → bijzondere AV binnen 2 maanden.</p>
+    <p><strong>Meerderheden:</strong> gewoon = uitgebrachte stemmen · statutenwijziging = <strong>3/4</strong> met 50% quorum.</p>
+  </section>
+
+  <section class="sr-section" id="sr8">
+    <span class="sr-tag">2 min</span>
+    <h2>8. CV (Boek 6)</h2>
+    <p><strong>Min. 3 oprichters</strong> · notariële akte · geen kapitaal · financieel plan · coöperatief gedachtegoed (ICA-waarden: vrijwillig lidmaatschap, democratische controle, autonomie, samenwerking…).</p>
+    <p><strong>Uniek kenmerk:</strong> soepele toe- en uittreding van vennoten <em>zonder statutenwijziging</em>. Nieuwe leden door bestuur, uittredende krijgen scheidingsaandeel (mits balans- en liquiditeitstest).</p>
+    <p><strong>Erkende CV</strong> door NRC → dividend tot €1.020 vrij van roerende voorheffing. <strong>Sociale CV (CV SO)</strong> → bijkomende voordelen voor sociale activiteiten.</p>
+    <p>Vennootschapsbelasting (verlaagd tarief mogelijk voor KMO).</p>
+  </section>
+
+  <section class="sr-section" id="sr9">
+    <span class="sr-tag">4 min</span>
+    <h2>9. NV (Boek 7) — de groteondernemingvorm</h2>
+    <p><strong>Min. €61.500</strong> volledig volgestort (min. 1/4 per aandeel). Notariële akte + financieel plan + bedrijfsrevisor bij inbreng in natura.</p>
+    <p><strong>Drie bestuursmodellen</strong> (vrije keuze in statuten):</p>
+    <ol>
+      <li><strong>Monistisch:</strong> raad van bestuur (min. 3, collegiaal) — kan dagelijks bestuur delegeren.</li>
+      <li><strong>Dualistisch:</strong> directieraad (uitvoerend) + raad van toezicht (controle), beide min. 3 leden.</li>
+      <li><strong>Enige bestuurder:</strong> alleen voor <em>niet-genoteerde</em> NV.</li>
+    </ol>
+    <p><strong>Aandelen vrij overdraagbaar</strong> tenzij statuten beperken. Vormen: op naam of <strong>gedematerialiseerd</strong> (genoteerd).</p>
+    <p><strong>Effecten:</strong> aandelen · winstbewijzen · obligaties (gewoon/converteerbaar) · warrants · inschrijvingsrechten. Sinds WVV ook <strong>loyaliteitsstemrecht</strong> (dubbel stemrecht na 2 jaar) bij genoteerde NV.</p>
+    <p><strong>Kapitaalverhoging:</strong> nieuwe inbreng · incorporatie reserves · conversie obligaties. <strong>Voorkeurrecht</strong> (7:188) voor bestaande aandeelhouders. <strong>Toegestaan kapitaal</strong> = machtiging aan bestuur, max. 5 jaar.</p>
+    <p><strong>Alarmbel (7:228):</strong> netto-actief &lt; 1/2 kapitaal → bijzondere AV binnen 2 maanden. &lt; 1/4 → strenger. &lt; €61.500 (= minimumkapitaal) → ontbinding kan gevorderd worden door belanghebbende.</p>
+    <p><strong>Meerderheden:</strong> gewone = ≥50% van uitgebrachte stemmen · statutenwijziging = <strong>3/4</strong> · doelwijziging = <strong>4/5</strong>.</p>
+    <p><strong>Uitkering:</strong> <strong>nettoactieftest</strong> (geen liquiditeitstest zoals BV).</p>
+    <p><strong>Belangenconflict (7:96):</strong> bestuurder met strijdig vermogensbelang meldt vooraf, neemt niet deel, motivatie in notulen.</p>
+    <div class="sr-pitfall">3/4 voor statuten, 4/5 voor doel. Verwissel ze niet — klassieke MC-strikvraag.</div>
+  </section>
+
+  <section class="sr-section" id="sr10">
+    <span class="sr-tag">2 min</span>
+    <h2>10. VZW & Stichting (Boek 9 + 11)</h2>
+    <p><strong>VZW:</strong> min. 2 oprichters · onderhandse of authentieke akte · belangeloos doel · mag commercieel zijn (zolang niet uitgekeerd). Leden: <em>effectieve</em> (stemrecht, min. 2) en <em>toegetreden</em> (geen stemrecht). Bestuur: <strong>min. 3 bestuurders</strong> (of 2 als slechts 3 effectieve leden). Fiscaal: rechtspersonenbelasting (RPB).</p>
+    <p><strong>IVZW:</strong> internationale vzw, oprichting via KB.</p>
+    <p><strong>Stichting:</strong> <em>geen leden</em>, bestemd vermogen, min. 1 stichter, <strong>verplicht notariële akte</strong>, min. 3 bestuurders, geen AV. Private of openbaar nut (KB nodig voor openbaar nut).</p>
+  </section>
+
+  <section class="sr-section" id="sr11">
+    <span class="sr-tag">2 min</span>
+    <h2>11. Europese vormen</h2>
+    <ul>
+      <li><strong>SE (Europese Vennootschap)</strong> — Verordening 2157/2001. Min. €120.000. 4 oprichtingsmethodes (fusie, holding, dochter, omzetting). Monistisch of dualistisch bestuur. Zetelverplaatsing naar andere EU-lidstaat zonder ontbinding.</li>
+      <li><strong>SCE (Europese Coöperatieve)</strong> — Verordening 1435/2003. Min. 5 natuurlijke personen uit 2 lidstaten of 2 rechtspersonen uit 2 staten. Min. €30.000.</li>
+      <li><strong>EESV / EEIG</strong> — Verordening 2137/85. Doel: activiteiten leden vergemakkelijken (<em>geen eigen winstoogmerk</em>). Leden onbeperkt en hoofdelijk aansprakelijk.</li>
+    </ul>
+  </section>
+
+  <section class="sr-section" id="sr12">
+    <span class="sr-tag">2 min</span>
+    <h2>12. Insolventie & Faillissement (Boek XX WER)</h2>
+    <p><strong>Faillissement — 2 cumulatieve voorwaarden:</strong></p>
+    <ol>
+      <li><strong>Duurzame staking van betaling</strong> (structurele onmogelijkheid opeisbare schulden te betalen).</li>
+      <li><strong>Geschokt krediet</strong> (geen krediet/uitstel meer beschikbaar).</li>
+    </ol>
+    <p><strong>Aangifteplicht</strong> binnen 1 maand (art. XX.102). Niet-aangifte → persoonlijke aansprakelijkheid + strafsanctie mogelijk.</p>
+    <p>Procedure: ondernemingsrechtbank · curator (advocaat) · rechter-commissaris · RegSol voor schuldvorderingen · <strong>buitenbezitstelling</strong> van gefailleerde.</p>
+    <p><strong>Verdeling</strong> in rangorde: boedelschulden → bevoorrecht (RSZ/fiscus/lonen) → hypothecair/pand → algemeen voorrecht → chirografair.</p>
+    <p>Natuurlijke persoon → <strong>kwijtschelding restschulden</strong> binnen 3 maanden vragen. Vennootschap → ontbinding na sluiting.</p>
+    <p><strong>Bestuurdersaansprakelijkheid bij faillissement:</strong> wrongful trading (XX.227), kennelijk ontoereikend aanvangsvermogen (5:16/7:18), niet-betaalde RSZ/bedrijfsvoorheffing.</p>
+    <p><strong>Gerechtelijke reorganisatie (GRP) — 3 vormen:</strong></p>
+    <ul>
+      <li><strong>Minnelijk akkoord</strong>: bilateraal met sommige schuldeisers.</li>
+      <li><strong>Collectief akkoord</strong>: reorganisatieplan, dubbele meerderheid, gehomologeerd door rechtbank, bindt allen.</li>
+      <li><strong>Overdracht onder gerechtelijk gezag</strong>: verkoop (van deel) aan derde onder toezicht gerechtsmandataris.</li>
+    </ul>
+    <div class="sr-checkpoint">Doel GRP = <strong>continuïteit redden</strong>. Faillissement = liquidatie. GRP komt vóór faillissement.</div>
+  </section>
+
+  <section class="sr-section" id="srfinal">
+    <span class="sr-tag">Bonus</span>
+    <h2>Slotcheck — kan je dit blind?</h2>
+    <ul>
+      <li>3 oprichters? → CV.</li>
+      <li>€61.500? → NV.</li>
+      <li>4/5 meerderheid? → wijziging doel NV.</li>
+      <li>3/4 meerderheid? → statutenwijziging BV en NV.</li>
+      <li>art. 5:153? → alarmbel BV.</li>
+      <li>art. 7:228? → alarmbel NV.</li>
+      <li>art. 2:57? → cap bestuurdersaansprakelijkheid.</li>
+      <li>art. 4:24 §2? → stille vennoot CommV mag niet besturen.</li>
+      <li>Dubbele test? → BV (balanstest + liquiditeitstest).</li>
+      <li>Nettoactieftest? → NV.</li>
+      <li>2 voorwaarden faillissement? → duurzame staking + geschokt krediet.</li>
+      <li>Aangifte binnen? → 1 maand.</li>
+      <li>Loon bedrijfsleider verlaagd tarief 2026? → €50.000.</li>
+    </ul>
+    <p style="text-align:center;margin-top:1.5rem"><strong>Als je deze 13 kunt → je bent klaar. Succes! 🍀</strong></p>
+  </section>
+</div>
+
+  </main>
+</div>
+<footer>
+  <p>Speedrun · Examen-pack · <a href="index.html">terug naar startpagina</a></p>
+</footer>
+
+<div class="pdf-modal" id="pdfModal" hidden role="dialog">
+  <div class="pdf-modal-backdrop" data-close></div>
+  <div class="pdf-modal-content">
+    <div class="pdf-modal-header">
+      <div class="pdf-modal-title">Praktisch Vennootschapsrecht 2025 — <span>pagina <strong id="pdfPageLabel">1</strong></span></div>
+      <div class="pdf-modal-actions">
+        <button class="pdf-page-btn" data-action="prev">←</button>
+        <input class="pdf-page-input" type="number" min="1" max="264" value="1">
+        <button class="pdf-page-btn" data-action="next">→</button>
+        <a class="pdf-open-tab" href="boek.pdf" target="_blank">⤴ Nieuw tabblad</a>
+        <button class="pdf-modal-close" data-close>✕</button>
+      </div>
+    </div>
+    <iframe class="pdf-modal-iframe" src=""></iframe>
+  </div>
+</div>
+
+<script src="auth.js"></script>
+<script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    function apply() {
+      const isUnlocked = window.Auth && window.Auth.isUnlocked();
+      document.getElementById('srLocked').hidden = isUnlocked;
+      document.getElementById('srPaid').hidden = !isUnlocked;
+    }
+    apply();
+    if (window.Auth) window.Auth.onChange(apply);
+  });
+</script>
+</body>
+</html>

@@ -4,6 +4,9 @@
   const STORAGE_KEY = 'vnr-flashcards-v1';
   const FILTER_KEY = 'vnr-flashcards-filter';
   const STUDY_KEY = 'vnr-flashcards-study';
+  const FREE_LIMIT = 40; // Cards before paywall kicks in
+
+  function unlocked() { return window.Auth && window.Auth.isUnlocked(); }
 
   /** @type {{categories: Array, cards: Array}} */
   let data = null;
@@ -132,6 +135,33 @@
     }
   }
 
+  function showLockedCard() {
+    const deckEl = $('fcDeck');
+    deckEl.style.display = '';
+    $('fcEmpty').hidden = true;
+    $('fcCardTag').textContent = 'Examen-pack vereist';
+    $('fcCardTagBack').textContent = 'Examen-pack vereist';
+    $('fcCardQ').innerHTML = `
+      <div style="text-align:center; width:100%;">
+        <div style="font-size:3rem; margin-bottom:0.6rem;">💎</div>
+        <div style="font-family:'Lora',serif; font-size:1.4rem; margin-bottom:0.6rem;">Ontgrendel alle ${data.cards.length} kaarten</div>
+        <div style="font-size:0.95rem; color:var(--text-soft); margin-bottom:1.4rem; line-height:1.5;">
+          Je hebt de eerste ${FREE_LIMIT} gratis kaarten doorlopen.<br>
+          De overige ${data.cards.length - FREE_LIMIT}+ kaarten zitten in het Examen-pack.
+        </div>
+        <button class="paywall-btn" data-open-unlock type="button">
+          💎 Examen-pack ontgrendelen — €5
+        </button>
+      </div>`;
+    $('fcCardA').innerHTML = $('fcCardQ').innerHTML;
+    $('fcCounter').textContent = `${FREE_LIMIT} / ${data.cards.length} (gratis preview)`;
+    card().classList.remove('flipped');
+    $('fcPrevBtn').disabled = false;
+    $('fcNextBtn').disabled = true;
+    $('fcKnownBtn').disabled = true;
+    $('fcUnknownBtn').disabled = true;
+  }
+
   function renderCard() {
     const empty = $('fcEmpty');
     const deckEl = $('fcDeck');
@@ -145,6 +175,13 @@
 
     if (pos < 0) pos = 0;
     if (pos >= deck.length) pos = deck.length - 1;
+
+    // Gate: free users see only first FREE_LIMIT cards of any deck
+    if (!unlocked() && pos >= FREE_LIMIT) {
+      showLockedCard();
+      return;
+    }
+
     const idx = deck[pos];
     const c = data.cards[idx];
     const cat = data.categories.find(x => x.id === c.cat);
@@ -154,11 +191,15 @@
     $('fcCardTagBack').textContent = tag;
     $('fcCardQ').textContent = c.q;
     $('fcCardA').innerHTML = mdToHtml(c.a);
-    $('fcCounter').textContent = `${pos + 1} / ${deck.length}`;
+    const totalLabel = unlocked() ? deck.length : Math.min(FREE_LIMIT, deck.length);
+    const lockedNote = (!unlocked() && deck.length > FREE_LIMIT) ? ` van ${deck.length} (Pro)` : '';
+    $('fcCounter').textContent = `${pos + 1} / ${totalLabel}${lockedNote}`;
     card().classList.remove('flipped');
 
     $('fcPrevBtn').disabled = pos === 0;
     $('fcNextBtn').disabled = pos === deck.length - 1;
+    $('fcKnownBtn').disabled = false;
+    $('fcUnknownBtn').disabled = false;
 
     // Visually mark known/unknown buttons depending on current state
     const state = progress[idx];
@@ -172,7 +213,10 @@
   }
 
   function next() {
-    if (pos < deck.length - 1) { pos++; renderCard(); }
+    // Free users: allow stepping to position FREE_LIMIT (locked card screen),
+    // but no further.
+    const maxPos = unlocked() ? deck.length - 1 : Math.min(deck.length - 1, FREE_LIMIT);
+    if (pos < maxPos) { pos++; renderCard(); }
   }
   function prev() {
     if (pos > 0) { pos--; renderCard(); }
