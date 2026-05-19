@@ -1,45 +1,66 @@
 // Client-side access control for the Examen-pack.
-// SHA-256 hashing input + matching against valid-codes.json.
-// Stores unlock state in localStorage.
-//
-// Security note: this is light access control (€5 product, classmates).
-// Pre-image attacks on 8-char codes from a 32-char alphabet are infeasible
-// in a browser, and a leaked code can simply be invalidated by removing
-// its hash from valid-codes.json.
+// Calls /api/unlock to validate code + track device count (max 3 per code).
+// Falls back to local validation if API unreachable (for already-unlocked users).
 
 (function() {
+  // Storage keys
   const STORAGE_KEY = 'vnr-pack-unlocked-v1';
   const STORAGE_CODE_KEY = 'vnr-pack-code-v1';
-  let _cache = null;
+  const STORAGE_TOKEN_KEY = 'vnr-pack-token-v2';
+  const STORAGE_DEVICE_KEY = 'vnr-pack-device-v1';
 
-  async function sha256(text) {
+  // === Crypto helpers ===
+  async function sha256Hex(text) {
     const enc = new TextEncoder().encode(text);
     const hash = await crypto.subtle.digest('SHA-256', enc);
     return Array.from(new Uint8Array(hash))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
+      .map(b => b.toString(16).padStart(2, '0')).join('');
   }
 
-  async function loadValidCodes() {
-    if (_cache) return _cache;
-    const res = await fetch('valid-codes.json');
-    if (!res.ok) throw new Error('Kon valid-codes.json niet laden');
-    _cache = await res.json();
-    return _cache;
+  // === Device fingerprint ===
+  // Composed of stable browser characteristics, hashed to a 16-char id.
+  // Same browser + same device = same id; switching browser or device = new id.
+  async function computeDeviceId() {
+    // Cache to avoid recomputing on every call within the same session
+    const cached = sessionStorage.getItem('vnr-deviceid');
+    if (cached) return cached;
+
+    const parts = [
+      navigator.userAgent || '',
+      `${screen.width}x${screen.height}x${screen.colorDepth}`,
+      (Intl.DateTimeFormat().resolvedOptions().timeZone) || '',
+      navigator.language || '',
+      String(navigator.hardwareConcurrency || 0),
+      navigator.platform || '',
+    ];
+
+    // Canvas fingerprint adds entropy
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = 220; canvas.height = 50;
+      const ctx = canvas.getContext('2d');
+      ctx.textBaseline = 'top';
+      ctx.font = '14px Arial';
+      ctx.fillStyle = '#f60';
+      ctx.fillRect(0, 0, 220, 50);
+      ctx.fillStyle = '#069';
+      ctx.fillText('Examen-pack VNR · 2026', 2, 2);
+      ctx.fillStyle = 'rgba(102, 204, 0, 0.7)';
+      ctx.fillText('Emiel ★', 4, 30);
+      parts.push(canvas.toDataURL());
+    } catch (e) {}
+
+    const full = await sha256Hex(parts.join('|'));
+    const id = full.slice(0, 16);
+    sessionStorage.setItem('vnr-deviceid', id);
+    return id;
   }
 
   function normalize(code) {
     return (code || '').toUpperCase().replace(/[\s-]/g, '');
   }
 
-  async function validateCode(code) {
-    code = normalize(code);
-    if (code.length < 6) return false;
-    const data = await loadValidCodes();
-    const h = await sha256(data.salt + code);
-    return data.hashes.includes(h);
-  }
-
+  // === State ===
   function isUnlocked() {
     return localStorage.getItem(STORAGE_KEY) === '1';
   }
@@ -48,27 +69,87 @@
     return localStorage.getItem(STORAGE_CODE_KEY) || '';
   }
 
-  async function unlock(code) {
-    const ok = await validateCode(code);
-    if (ok) {
-      localStorage.setItem(STORAGE_KEY, '1');
-      localStorage.setItem(STORAGE_CODE_KEY, normalize(code));
-      _emit('unlock');
-    }
-    return ok;
+  function setUnlocked(code, token, deviceId) {
+    localStorage.setItem(STORAGE_KEY, '1');
+    localStorage.setItem(STORAGE_CODE_KEY, normalize(code));
+    if (token) localStorage.setItem(STORAGE_TOKEN_KEY, token);
+    if (deviceId) localStorage.setItem(STORAGE_DEVICE_KEY, deviceId);
+    _emit('unlock');
   }
 
   function lock() {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_CODE_KEY);
+    localStorage.removeItem(STORAGE_TOKEN_KEY);
+    localStorage.removeItem(STORAGE_DEVICE_KEY);
     _emit('lock');
   }
 
+  // === API call ===
+  // Returns { ok, reason?, message?, devices?, maxDevices? }
+  async function unlock(code) {
+    const norm = normalize(code);
+    if (norm.length < 6) return { ok: false, reason: 'invalid', message: 'Code te kort.' };
+
+    let deviceId;
+    try { deviceId = await computeDeviceId(); }
+    catch (e) { deviceId = 'unknown-' + Math.random().toString(36).slice(2, 10); }
+
+    try {
+      const r = await fetch('/api/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: norm, deviceId }),
+      });
+
+      if (r.status === 403) {
+        const data = await r.json().catch(() => ({}));
+        if (data.error === 'device_limit') {
+          return {
+            ok: false,
+            reason: 'device_limit',
+            message: data.message || 'Deze code is al actief op het maximum aantal apparaten.',
+            current: data.current,
+            maxDevices: data.maxDevices,
+          };
+        }
+        return { ok: false, reason: 'forbidden', message: data.message || data.error || 'Forbidden' };
+      }
+
+      if (r.status === 404) {
+        return { ok: false, reason: 'invalid', message: 'Deze code is niet geldig. Check de spelling of mail mij.' };
+      }
+
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        return { ok: false, reason: 'error', message: data.error || `Server fout (${r.status})` };
+      }
+
+      const data = await r.json();
+      setUnlocked(norm, data.token, deviceId);
+      return {
+        ok: true,
+        devices: data.devices,
+        maxDevices: data.maxDevices,
+        isNewDevice: data.isNewDevice,
+        degraded: data.degraded,
+      };
+    } catch (e) {
+      // Network error
+      return {
+        ok: false,
+        reason: 'network',
+        message: 'Geen verbinding met de server. Probeer opnieuw of mail mij.',
+      };
+    }
+  }
+
+  // === Event bus ===
   const _listeners = new Set();
   function onChange(cb) { _listeners.add(cb); return () => _listeners.delete(cb); }
   function _emit(ev) { _listeners.forEach(cb => { try { cb(ev); } catch (e) {} }); }
 
-  // Re-emit on cross-tab unlock
+  // Cross-tab sync
   window.addEventListener('storage', (e) => {
     if (e.key === STORAGE_KEY) _emit(e.newValue === '1' ? 'unlock' : 'lock');
   });
@@ -85,7 +166,7 @@
     <h2 id="unlockTitle">Ontgrendel het volledige pakket</h2>
     <p class="unlock-lead">De gratis samenvatting helpt je slagen — het Examen-pack helpt je <strong>onderscheiding</strong> halen.</p>
     <ul class="unlock-features">
-      <li><strong>200+ flashcards</strong> (gratis: 40) met progress-tracking</li>
+      <li><strong>199 flashcards</strong> (gratis: 40) met progress-tracking</li>
       <li><strong>Volledige quiz</strong> met scoring en feedback</li>
       <li><strong>Cheat-sheet</strong> — printbare A4 'spiekbriefje'</li>
       <li><strong>Last-minute speedrun</strong> — alles in 30 minuten</li>
@@ -107,7 +188,10 @@
         <div class="unlock-feedback" id="unlockFeedback"></div>
       </form>
     </div>
-    <p class="unlock-footer">Na betaling krijg je je code per mail (handmatig verstuurd, meestal binnen het uur). Vragen? DM <a href="mailto:emieldewaele@gmail.com">emieldewaele@gmail.com</a>.</p>
+    <p class="unlock-footer">
+      Je code werkt op <strong>maximaal 3 apparaten</strong> (laptop + telefoon + tablet bv.).<br>
+      Limit bereikt? Mail <a href="mailto:emieldewaele@gmail.com">emieldewaele@gmail.com</a> voor een reset.
+    </p>
   </div>
 </div>`;
     const div = document.createElement('div');
@@ -124,19 +208,29 @@
       const fb = document.getElementById('unlockFeedback');
       const code = input.value.trim();
       if (!code) return;
-      fb.textContent = 'Aan het controleren…';
+      fb.textContent = 'Bezig met activeren…';
       fb.className = 'unlock-feedback';
-      const ok = await unlock(code);
-      if (ok) {
-        fb.textContent = '✓ Code geldig! Je hebt nu toegang tot alles.';
+
+      const result = await unlock(code);
+
+      if (result.ok) {
+        const devInfo = result.maxDevices
+          ? ` (${result.devices}/${result.maxDevices} apparaten gebruikt)`
+          : '';
+        fb.innerHTML = `✓ Code geactiveerd${devInfo}. Pagina wordt herladen…`;
         fb.className = 'unlock-feedback ok';
         setTimeout(() => {
           closeModal();
-          // Reload to apply unlock everywhere
           window.location.reload();
-        }, 900);
+        }, 1100);
+      } else if (result.reason === 'device_limit') {
+        fb.innerHTML = `⚠ ${result.message}`;
+        fb.className = 'unlock-feedback err';
+      } else if (result.reason === 'network') {
+        fb.innerHTML = `✗ ${result.message}`;
+        fb.className = 'unlock-feedback err';
       } else {
-        fb.textContent = '✗ Deze code is niet geldig. Check spelling of mail mij.';
+        fb.textContent = '✗ ' + (result.message || 'Code niet geldig.');
         fb.className = 'unlock-feedback err';
       }
     });
@@ -186,28 +280,31 @@
     isUnlocked,
     unlock,
     lock,
-    validateCode,
     onChange,
     openUnlockModal: openModal,
     closeUnlockModal: closeModal,
     getSavedCode,
+    computeDeviceId,
   };
 
   document.addEventListener('DOMContentLoaded', () => {
     updateHeaderBadge();
     onChange(updateHeaderBadge);
-    // If URL ?code=XYZ, auto-unlock
+
+    // Auto-unlock via ?code=XYZ URL param
     const url = new URL(window.location.href);
     const codeParam = url.searchParams.get('code');
     if (codeParam && !isUnlocked()) {
-      unlock(codeParam).then(ok => {
-        if (ok) {
-          url.searchParams.delete('code');
-          history.replaceState({}, '', url.toString());
-          alert('Examen-pack ontgrendeld! ✓');
-          window.location.reload();
-        }
-      });
+      // Show modal pre-filled so user sees the flow
+      openModal();
+      setTimeout(() => {
+        const input = document.getElementById('unlockInput');
+        if (input) input.value = codeParam;
+        url.searchParams.delete('code');
+        history.replaceState({}, '', url.toString());
+        const form = document.getElementById('unlockForm');
+        if (form) form.dispatchEvent(new Event('submit'));
+      }, 200);
     }
   });
 })();

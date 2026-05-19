@@ -1,6 +1,8 @@
 # Setup — Stripe Payment Link + code-distributie
 
-Eenmalige opzet, ~15 minuten werk. Daarna kun je verkopen.
+Eenmalige opzet, ~25 minuten werk. Daarna kun je verkopen mét device-limiet (max 3 apparaten per code).
+
+> **Twee delen:** eerst [Stripe](#stap-1--stripe-account-aanmaken-5-min) (verkoop), daarna [Vercel KV](#bonus--device-limiet-instellen-vercel-kv) (anti-sharing).
 
 ## Hoe het werkt (overview)
 
@@ -160,3 +162,95 @@ Stripe-fee = **1.5% + €0.25** per transactie (EU-kaarten).
 Per €5-verkoop: €5 - €0.075 - €0.25 = **€4.675 netto** per verkoop.
 
 Bij 30 medestudenten = €140 netto. Bij 100 (over meerdere klassen/jaren via mond-tot-mondreclame) = €467 netto.
+
+---
+
+# 🛡️ BONUS — Device-limiet instellen (Vercel KV)
+
+Met deze setup wordt elke code beperkt tot **max 3 apparaten**. Probeert een 4ᵉ apparaat te activeren? "Limit reached" foutmelding. Voorkomt dat een koper z'n code gratis doorgeeft aan z'n hele klas.
+
+**Effort:** ~10 min.
+**Kost:** gratis (Vercel KV Hobby tier = 30k commands/dag, ruim voldoende).
+
+## Stap A — Vercel KV store aanmaken
+
+1. Ga naar https://vercel.com → je project `vennootschapsrecht-samenvatting`.
+2. Tab **Storage** → **Create Database** → kies **KV (Powered by Upstash)**.
+3. Naam: `vnr-pack-kv`. Region: dichtstbij (Frankfurt voor BE).
+4. Bevestig. Vercel maakt de database aan **en koppelt automatisch env vars** aan je project.
+
+Je ziet nu deze env vars verschijnen (Settings → Environment Variables):
+
+- `KV_REST_API_URL`
+- `KV_REST_API_TOKEN`
+- `KV_REST_API_READ_ONLY_TOKEN`
+- `KV_URL`
+
+(Het script gebruikt de eerste twee.)
+
+## Stap B — Eigen secrets toevoegen
+
+Zelfde Settings → Environment Variables → **Add New**. Voeg toe:
+
+| Naam | Waarde | Waarom |
+|---|---|---|
+| `HMAC_SECRET` | Een random string, bv. `openssl rand -hex 32` of typ 40+ random tekens | Signeert de token na unlock |
+| `ADMIN_SECRET` | Een sterk wachtwoord dat alleen jij kent (15+ tekens, kies wat goed onthoudbaar is) | Beschermt `/admin.html` zodat alleen jij codes kan resetten |
+| `MAX_DEVICES` | `3` (of `2`, `5`, ...) | Max apparaten per code. Default = 3. |
+| `TOKEN_TTL_DAYS` | `365` | Hoelang een token geldig blijft. Default = 365 dagen. |
+
+Genereer een goede HMAC_SECRET via terminal:
+```bash
+openssl rand -hex 32
+# of in Node:
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Klik **Save** per env var. Belangrijk: zorg dat alle environments aangevinkt zijn (Production + Preview + Development).
+
+## Stap C — Redeploy
+
+Na het toevoegen van env vars moet je **redeployen**:
+
+- Vercel → Deployments tab → klik op de laatste deploy → **⋯** → **Redeploy**.
+
+Vanaf nu gebruikt `/api/unlock` automatisch de KV-store.
+
+## Stap D — Test de device-limiet
+
+1. Open je site op laptop, plak een testcode → unlock werkt ✓
+2. Open op telefoon (of incognito tab), zelfde code → werkt ✓ (2/3)
+3. Open op nóg een browser/incognito, zelfde code → werkt ✓ (3/3)
+4. Open op een 4ᵉ browser → **"Limit reached"** ✓
+
+## Stap E — Test admin-reset
+
+1. Ga naar `https://jouw-site.vercel.app/admin.html`
+2. Vul je `ADMIN_SECRET` in + de code die je net 3× gebruikt hebt.
+3. Klik "Reset apparaten". Confirmation verschijnt.
+4. Probeer opnieuw te activeren in een 4ᵉ browser → werkt nu wel ✓ (de teller staat terug op 0).
+
+## Hoe gebruik je de admin tool dagelijks?
+
+Wanneer een koper je mailt: *"Ik krijg de limiet-fout, ik wil mijn nieuwe MacBook activeren"*:
+
+1. Open `https://jouw-site.vercel.app/admin.html` (bookmarken!)
+2. Vul je ADMIN_SECRET + hun code in
+3. Klik reset
+4. Mail terug: "Klaar, probeer nu opnieuw."
+
+> ⚠ **Verspreid het admin-secret nergens.** Iemand met je ADMIN_SECRET kan alle codes resetten en effectief gratis pack-toegang regelen.
+
+## Wat als KV niet beschikbaar is?
+
+Het script heeft een **graceful fallback**: als KV niet bereikbaar is of geen env vars gezet zijn, werkt unlock alsnog (zonder device-tracking). Een banner "degraded mode" wordt in de response gemarkeerd maar voor de eindgebruiker is alles normaal. Veiliger dan harde fouten.
+
+## Statistieken bekijken
+
+Vercel → Storage → vnr-pack-kv → tab **Data Browser** kun je live alle KV-keys zien. Zoek op `code:` om te zien welke codes actief zijn en hoeveel devices.
+
+Of via terminal:
+```bash
+curl -H "Authorization: Bearer $KV_REST_API_TOKEN" \
+  "$KV_REST_API_URL/keys/code:*"
+```
