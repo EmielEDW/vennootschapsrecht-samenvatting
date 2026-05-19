@@ -37,7 +37,7 @@ Eenmalige opzet, ~25 minuten werk. Daarna kun je verkopen mét device-limiet (ma
 Je krijgt **binnen het uur** je persoonlijke toegangscode op het e-mailadres dat je net hebt gebruikt.
 
 Vragen of haast? Stuur even een berichtje naar:
-- 📧 emieldewaele@gmail.com
+- 📧 info@emieldewaele.com
 
 Zodra je de code hebt, ga je naar:
 👉 https://vennootschapsrecht-samenvatting.vercel.app/examen-pack.html
@@ -281,7 +281,7 @@ Settings → Environment Variables → Add:
 |---|---|
 | `RESEND_API_KEY` | de `re_...` key uit stap A |
 | `FROM_EMAIL` | `Examen-pack <onboarding@resend.dev>` (of jouw eigen domein) |
-| `REPLY_TO_EMAIL` | `emieldewaele@gmail.com` (replies komen daar) |
+| `REPLY_TO_EMAIL` | `info@emieldewaele.com` (replies komen daar) |
 | `SITE_URL` | `https://vennootschapsrecht-samenvatting.vercel.app` |
 | `STRIPE_WEBHOOK_SECRET` | (volgt in stap D) |
 

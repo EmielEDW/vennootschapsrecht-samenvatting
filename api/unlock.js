@@ -144,7 +144,7 @@ module.exports = async (req, res) => {
     if (devices.length >= MAX_DEVICES) {
       return res.status(403).json({
         error: 'device_limit',
-        message: `Deze code is al actief op ${devices.length} apparaten (max ${MAX_DEVICES}). Mail emieldewaele@gmail.com om een reset te vragen.`,
+        message: `Deze code is al actief op ${devices.length} apparaten (max ${MAX_DEVICES}). Mail info@emieldewaele.com om een reset te vragen.`,
         current: devices.length,
         maxDevices: MAX_DEVICES,
       });

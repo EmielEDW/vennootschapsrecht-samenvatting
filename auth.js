@@ -190,7 +190,7 @@
     </div>
     <p class="unlock-footer">
       Je code werkt op <strong>maximaal 3 apparaten</strong> (laptop + telefoon + tablet bv.).<br>
-      Limit bereikt? Mail <a href="mailto:emieldewaele@gmail.com">emieldewaele@gmail.com</a> voor een reset.
+      Limit bereikt? Mail <a href="mailto:info@emieldewaele.com">info@emieldewaele.com</a> voor een reset.
     </p>
   </div>
 </div>`;
