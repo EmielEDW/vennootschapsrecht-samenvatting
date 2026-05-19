@@ -1052,11 +1052,18 @@ footer a:hover { color: var(--accent); }
 }
 .pack-hero .pack-lead {
   font-size: 1.1rem;
-  opacity: 0.92;
   max-width: 540px;
   position: relative;
   line-height: 1.6;
+  color: #f5f0e6;
 }
+.pack-hero strong,
+.pack-hero .pack-lead strong,
+.pack-hero p strong {
+  color: #f5d488;
+  font-weight: 600;
+}
+.pack-hero p { color: #f5f0e6; }
 .pack-hero .pack-price-block {
   display: flex;
   align-items: baseline;
