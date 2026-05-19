@@ -164,10 +164,10 @@
     <button class="unlock-close" data-unlock-close aria-label="Sluiten">✕</button>
     <div class="unlock-badge">💎 EXAMEN-PACK</div>
     <h2 id="unlockTitle">Ontgrendel het volledige pakket</h2>
-    <p class="unlock-lead">De gratis samenvatting helpt je slagen — het Examen-pack helpt je <strong>onderscheiding</strong> halen.</p>
+    <p class="unlock-lead">Wil je oefenen met alle flashcards en de hele quiz? Dat zit allemaal in het pack.</p>
     <ul class="unlock-features">
-      <li><strong>199 flashcards</strong> (gratis: 40) met progress-tracking</li>
-      <li><strong>Volledige quiz</strong> met scoring en feedback</li>
+      <li><strong>Alle flashcards</strong> — gratis: Inleiding + Deel 1 · pack: alles</li>
+      <li><strong>Volledige quiz</strong> — gratis: 3 onderwerpen · pack: alle 14</li>
       <li><strong>Cheat-sheet</strong> — printbare A4 'spiekbriefje'</li>
       <li><strong>Last-minute speedrun</strong> — alles in 30 minuten</li>
       <li><strong>Handboek-PDF</strong> ingebouwde viewer + download</li>
